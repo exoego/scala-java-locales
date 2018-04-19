@@ -1,7 +1,8 @@
 # scala-java-locales
 
 [![Build Status](https://api.travis-ci.org/cquiroz/scala-java-locales.svg?branch=master)](https://travis-ci.org/cquiroz/scala-java-locales)
-[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.8.svg)](https://www.scala-js.org/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.cquiroz/scala-java-locales_sjs0.6_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.cquiroz/scala-java-locales_sjs0.6_2.12)
+[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.17.svg)](https://www.scala-js.org/)
 
 `scala-java-locales` is a clean-room BSD-licensed implementation of the `java.util.Locale` API and related classes as defined on JDK8, mostly for Scala.js usage. It enables the locale API in Scala.js projects and supports usage requiring locales like number and dates formatting.
 
@@ -31,7 +32,7 @@ lazy val myCross = crossProject.
   )
 ```
 
-**Requirement**: you must use a host JDK8 to *build* your project, i.e., to
+**Requirement**: you must use a host JDK8 to _build_ your project, i.e., to
 launch sbt. `scala-java-locales` does not work on earlier JDKs.
 
 ## Work in Progress / linking errors
@@ -55,7 +56,7 @@ LocaleRegistry.installLocale(fi_FI)
 val dfs = DecimalFormatSymbols.getInstance(Locale.forLanguageTag("fi_FI"))
 ```
 
-***Note:*** that calls to `Locale.forLanguageTag("fi_FI")` will succeed regardless of the installation due to the requirements on the `Locale` API
+**_Note:_** that calls to `Locale.forLanguageTag("fi_FI")` will succeed regardless of the installation due to the requirements on the `Locale` API
 
 ## Default Locale
 
@@ -68,7 +69,6 @@ Locale.setDefault(Locale.forLanguageTag(<my-locale>))
 The Java API requires a default `Locale` though it doesn't mandate a specific one, instead, the runtime should select it depending on the platform.
 
 While the Java Locales use the OS default locale, on `Scala.js` platforms like browsers or node.js, there is no reliable way to identify the default locale. `scala-java-locales` sets `en (English)` as the default locale and **does not** attempt to determine the correct locale for the environment. This is a desigs decision to support the many API calls that require a default locale. It seems that `Scala.js` _de facto_ uses `en` for number formatting.
-
 
 ## CLDR
 
@@ -112,7 +112,8 @@ A very simple `Scala.js` project is available at [scalajs-locales-demo](https://
 
 ## Publishing
 
-on 0.6.x
+on 0.6.22
+
 ```
 sbt
 clean
@@ -123,9 +124,10 @@ sonatyeRelease
 
 Important: Remember to clean between different scala.js versions
 
-on 1.0.0-M1
+on 1.0.0-M3
+
 ```
-SCALAJS_VERSION=1.0.0-M1 sbt
+SCALAJS_VERSION=1.0.0-M3 sbt
 clean
 +publishSigned
 sonatyeRelease

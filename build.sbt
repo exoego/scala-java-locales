@@ -7,12 +7,18 @@ lazy val downloadFromZip: TaskKey[Unit] =
   taskKey[Unit]("Download the sbt zip and extract it")
 
 val commonSettings: Seq[Setting[_]] = Seq(
-  cldrVersion := "31",
-  version := s"0.5.6-cldr${cldrVersion.value}",
+  cldrVersion := "33",
+  version := s"0.6.0-cldr${cldrVersion.value}-SNAPSHOT",
   organization := "io.github.cquiroz",
-  scalaVersion := "2.11.11",
-  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.3", "2.13.0-M2"),
-    scalacOptions ++= Seq("-deprecation", "-feature"),
+  scalaVersion := "2.12.4",
+  crossScalaVersions := {
+    if (scalaJSVersion.startsWith("0.6")) {
+      Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
+    } else {
+      Seq("2.11.12", "2.12.4", "2.13.0-M2")
+    }
+  },
+  scalacOptions ++= Seq("-deprecation", "-feature"),
   scalacOptions := {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, scalaMajor)) if scalaMajor >= 11 =>
@@ -21,14 +27,13 @@ val commonSettings: Seq[Setting[_]] = Seq(
         scalacOptions.value
     }
   },
-  javaOptions        ++= Seq("-Dfile.encoding=UTF8"),
   mappings in (Compile, packageBin) ~= {
     // Exclude CLDR files...
     _.filter(!_._2.contains("core"))
   },
-  useGpg                  := true,
-  exportJars              := true,
-  publishMavenStyle       := true,
+  useGpg := true,
+  exportJars := true,
+  publishMavenStyle := true,
   publishArtifact in Test := false,
   publishTo               := {
     val nexus = "https://oss.sonatype.org/"
@@ -110,14 +115,13 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform).
       generateLocaleData((sourceManaged in Compile).value,
         (resourceDirectory in Compile).value / "core")
     }.taskValue
-  ).
-  jsConfigure(_.enablePlugins(ScalaJSJUnitPlugin))
+  )
 
 lazy val coreJS: Project = core.js
   .settings(
     scalacOptions ++= {
       val tagOrHash =
-        if (isSnapshot.value) sys.process.Process("git rev-parse HEAD").lines_!.head
+        if (isSnapshot.value) sys.process.Process("git rev-parse HEAD").lineStream_!.head
         else s"v${version.value}"
       (sourceDirectories in Compile).value.map { dir =>
         val a = dir.toURI.toString
@@ -152,6 +156,7 @@ lazy val testSuite = crossProject(JVMPlatform, JSPlatform, NativePlatform).
     )
   ).
   jsConfigure(_.dependsOn(coreJS, macroUtils)).
+  jsConfigure(_.enablePlugins(ScalaJSJUnitPlugin)).
   jvmSettings(
     // Fork the JVM test to ensure that the custom flags are set
     fork in Test := true,
