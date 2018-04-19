@@ -14,25 +14,39 @@ case class DecimalPatterns(positive: PatternParts, negative: Option[PatternParts
 
 object DecimalFormatUtil {
   // These are the "standard" pattern characters we convert any localized patterns to
-  val PatternCharZeroDigit = '0'
+  val PatternCharZeroDigit         = '0'
   val PatternCharGroupingSeparator = ','
-  val PatternCharDecimalSeparator = '.'
-  val PatternCharPerMile = '\u2030'
-  val PatternCharPercent = '%'
-  val PatternCharDigit = '#'
-  val PatternCharSeparator = ';'
-  val PatternCharExponent = 'E'
-  val PatternCharMinus = '-'
-  val PatternCharCurrencySymbol = '\u00A4'
+  val PatternCharDecimalSeparator  = '.'
+  val PatternCharPerMile           = '\u2030'
+  val PatternCharPercent           = '%'
+  val PatternCharDigit             = '#'
+  val PatternCharSeparator         = ';'
+  val PatternCharExponent          = 'E'
+  val PatternCharMinus             = '-'
+  val PatternCharCurrencySymbol    = '\u00A4'
 
-  private val allPatternChars = List(PatternCharZeroDigit, PatternCharGroupingSeparator, PatternCharDecimalSeparator,
-    PatternCharPerMile, PatternCharPercent, PatternCharDigit, PatternCharSeparator, PatternCharExponent, PatternCharMinus)
+  private val allPatternChars = List(
+    PatternCharZeroDigit,
+    PatternCharGroupingSeparator,
+    PatternCharDecimalSeparator,
+    PatternCharPerMile,
+    PatternCharPercent,
+    PatternCharDigit,
+    PatternCharSeparator,
+    PatternCharExponent,
+    PatternCharMinus
+  )
 
-  private val numberPatternChars = List(PatternCharZeroDigit, PatternCharDigit, PatternCharDecimalSeparator, PatternCharMinus,
-    PatternCharGroupingSeparator, PatternCharExponent)
+  private val numberPatternChars = List(PatternCharZeroDigit,
+                                        PatternCharDigit,
+                                        PatternCharDecimalSeparator,
+                                        PatternCharMinus,
+                                        PatternCharGroupingSeparator,
+                                        PatternCharExponent)
 
   private val digitPatternChars = List(PatternCharZeroDigit, PatternCharDigit)
-  private val digitAndGroupPatternChars = List(PatternCharZeroDigit, PatternCharDigit, PatternCharGroupingSeparator)
+  private val digitAndGroupPatternChars =
+    List(PatternCharZeroDigit, PatternCharDigit, PatternCharGroupingSeparator)
 
   def lastIndexOfPattern(pattern: String, symbol: Char): Int = {
     val max = pattern.length - 1
@@ -41,20 +55,22 @@ object DecimalFormatUtil {
 
   def suffixFor(format: DecimalFormat, symbol: Char): String = {
     val pattern = format.toPattern
-    pattern.substring(lastIndexOfPattern(pattern, symbol) + 1, pattern.length).replaceAll(symbol.toString, localizedSymbol(format, symbol).toString)
+    pattern
+      .substring(lastIndexOfPattern(pattern, symbol) + 1, pattern.length)
+      .replaceAll(symbol.toString, localizedSymbol(format, symbol).toString)
   }
 
   def decimalPatternSplit(pattern: String): PatternParts = {
     // Traverse the string to find the suffix and prefix
-    val prefix = new StringBuilder()
-    val body = new StringBuilder()
-    val suffix = new StringBuilder()
+    val prefix    = new StringBuilder()
+    val body      = new StringBuilder()
+    val suffix    = new StringBuilder()
     val quoteChar = '''
 
     // Fast parsing with mutable vars
     var prefixReady = false
-    var bodyReady = false
-    var skipCount = 0
+    var bodyReady   = false
+    var skipCount   = 0
     for {
       (c, i) <- pattern.zipWithIndex.toList
     } {
@@ -103,7 +119,7 @@ object DecimalFormatUtil {
     PatternParts(prefix.toString(), body.toString, suffix.toString)
   }
 
-  def localizeString(str: String, symbols: DecimalFormatSymbols): String = {
+  def localizeString(str: String, symbols: DecimalFormatSymbols): String =
     str.map {
       case PatternCharPercent   => symbols.getPercent.toString
       case PatternCharMinus     => symbols.getMinusSign.toString
@@ -112,7 +128,6 @@ object DecimalFormatUtil {
       case PatternCharExponent  => symbols.getExponentSeparator()
       case c                    => c.toString
     }.mkString
-  }
 
   def toDecimalPatterns(pattern: String): DecimalPatterns = pattern.split(';').toList match {
     case Nil         => DecimalPatterns(PatternParts(""), None)
@@ -121,54 +136,61 @@ object DecimalFormatUtil {
   }
 
   def groupingCount(pattern: String): Int = {
-    val pat = pattern.filterNot(c => c == PatternCharPercent || !allPatternChars.contains(c))
-    val decIndex = pat.lastIndexOf(PatternCharDecimalSeparator)
-    val actualDecIndex = if (decIndex < 0) pat.length - 1 else decIndex - 1
+    val pat                = pattern.filterNot(c => c == PatternCharPercent || !allPatternChars.contains(c))
+    val decIndex           = pat.lastIndexOf(PatternCharDecimalSeparator)
+    val actualDecIndex     = if (decIndex < 0) pat.length - 1 else decIndex - 1
     val lastSeparatorIndex = pat.lastIndexOf(PatternCharGroupingSeparator, actualDecIndex)
     if (pat.isEmpty) 3
     else if (lastSeparatorIndex < 0) 0
-    else (if (decIndex < 0 ) pat.length - 1 - lastSeparatorIndex else actualDecIndex - lastSeparatorIndex)
+    else (if (decIndex < 0) pat.length - 1 - lastSeparatorIndex
+          else actualDecIndex - lastSeparatorIndex)
   }
 
-  def localizedSymbol(f: DecimalFormat, symbol: Char): Char = {
+  def localizedSymbol(f: DecimalFormat, symbol: Char): Char =
     symbol match {
       case PatternCharPercent => f.getDecimalFormatSymbols.getPercent
       case PatternCharMinus   => f.getDecimalFormatSymbols.getMinusSign
-      case x => x
+      case x                  => x
     }
-  }
 
   implicit class RichString(val s: String) extends AnyVal {
     def toBlankOption: Option[String] = {
-      if (s == null) return None
-
-      s.find{!Character.isWhitespace(_)}.map{ _ => s }
+      if (s == null) None else {
+        s.find { !Character.isWhitespace(_) }.map { _ =>
+          s
+        }
+      }
     }
   }
 
   // This probably isn't perfect if there is a malformed pattern ("#0#0.0#0E#0") but should be good enough
   // TODO: Maybe just add a regexp to validate the correctness of the pattern somewhere else
-  private def countMinimum(pattern: String, c: Char, trailingCount: Boolean = true): Option[Int] = {
+  private def countMinimum(pattern: String, c: Char, trailingCount: Boolean = true): Option[Int] =
     pattern.indexOf(c) match {
       case -1  => None
       case idx =>
         // If trailing then take everything after the ".", if preceding take until the "." and reverse it
         // to count the zeroes directly before the "."
-        val haystack: String = if (trailingCount) pattern.substring(idx+1) else pattern.substring(0, idx).reverse
-        val min: Int = haystack.filterNot{_ == PatternCharGroupingSeparator}.takeWhile(_ == PatternCharZeroDigit).size
+        val haystack: String =
+          if (trailingCount) pattern.substring(idx + 1) else pattern.substring(0, idx).reverse
+        val min: Int = haystack
+          .filterNot { _ == PatternCharGroupingSeparator }
+          .takeWhile(_ == PatternCharZeroDigit)
+          .size
         if (min > 0) Some(min) else None
     }
-  }
 
-
-  private def countMaximumDigits(pattern: String, c: Char): Option[Int] = {
+  private def countMaximumDigits(pattern: String, c: Char): Option[Int] =
     pattern.indexOf(c) match {
       case -1 => None
-      case idx => Some(
-        pattern.substring(idx+1).takeWhile(digitAndGroupPatternChars.contains(_)).count(digitPatternChars.contains(_))
-      )
+      case idx =>
+        Some(
+          pattern
+            .substring(idx + 1)
+            .takeWhile(digitAndGroupPatternChars.contains(_))
+            .count(digitPatternChars.contains(_))
+        )
     }
-  }
 
   // Expects a non-localized pattern, we should have a regex that enforces a good pattern
   def toParsedPattern(pattern: String): ParsedPattern = {
@@ -178,16 +200,17 @@ object DecimalFormatUtil {
 
     // These present in the prefix or suffix modify the multiplier
     val hasPercent: Boolean = prefixAndSuffix.exists(_ == PatternCharPercent)
-    val hasMile: Boolean = prefixAndSuffix.exists(_ == PatternCharPerMile)
+    val hasMile: Boolean    = prefixAndSuffix.exists(_ == PatternCharPerMile)
     assert(
       (hasPercent && !hasMile) || (!hasPercent && hasMile) || (!hasPercent && !hasMile),
       "Can either be percent or mile, not both"
     )
 
-    val hasExponent: Boolean = patterns.positive.pattern.exists{_ == PatternCharExponent}
+    val hasExponent: Boolean = patterns.positive.pattern.exists { _ == PatternCharExponent }
 
     // Need to default to a Some(1) for minIntegerDigits
-    val minFractionDigits: Option[Int] = countMinimum(patterns.positive.pattern, PatternCharDecimalSeparator, true)
+    val minFractionDigits: Option[Int] =
+      countMinimum(patterns.positive.pattern, PatternCharDecimalSeparator, true)
 
     // A little special since only applies to patterns with an exponent
     val maxIntegerDigits: Option[Int] = if (hasExponent) {
@@ -201,44 +224,43 @@ object DecimalFormatUtil {
     // forces the exponent to be a multiple of the maximum number of integer digits, and the minimum number of integer
     // digits to be interpreted as 1.
     val minIntegerDigits: Option[Int] = {
-      val count: Option[Int] = countMinimum(patterns.positive.pattern, PatternCharDecimalSeparator, false)
+      val count: Option[Int] =
+        countMinimum(patterns.positive.pattern, PatternCharDecimalSeparator, false)
 
       val exponentMin: Option[Int] =
         for {
           maxInt <- maxIntegerDigits
           minInt <- count
-          if (hasExponent)
-          if (maxInt > minInt && maxInt > 1)
+          if hasExponent
+          if maxInt > minInt && maxInt > 1
         } yield (1)
 
-
-      exponentMin orElse count orElse (if (minFractionDigits.isDefined) None else Some(1)) // Default to 1 if no min fraction or min count
+      exponentMin
+        .orElse(count)
+        .orElse(if (minFractionDigits.isDefined) None else Some(1)) // Default to 1 if no min fraction or min count
     }
 
     val groupSize: Int = groupingCount(patterns.positive.pattern)
 
     ParsedPattern(
-      positivePrefix           = patterns.positive.prefix.toBlankOption,
-      positiveSuffix           = patterns.positive.suffix.toBlankOption,
-
-      negativePrefix           = patterns.negative.flatMap{ _.prefix.toBlankOption },
-      negativeSuffix           = patterns.negative.flatMap{ _.suffix.toBlankOption },
-
-      defaultNegativePrefix    = if (patterns.negative.isEmpty) patterns.positive.prefix.toBlankOption else None,
-      defaultNegativeSuffix    = if (patterns.negative.isEmpty) patterns.positive.suffix.toBlankOption else None,
-
-      multiplier               = if (hasPercent) 100 else if (hasMile) 1000 else 1,
-
-      groupingSize             = groupSize,
-      isGroupingUsed           = (groupSize > 0),
-
-      minimumIntegerDigits     = minIntegerDigits,
-      minimumFractionDigits    = minFractionDigits,
-      minimumExponentDigits    = countMinimum(patterns.positive.pattern, PatternCharExponent, true),
-
-      maximumIntegerDigits     = maxIntegerDigits,
-      maximumFractionDigits    = countMaximumDigits(patterns.positive.pattern, PatternCharDecimalSeparator),
-      maximumExponentDigits    = countMaximumDigits(patterns.positive.pattern, PatternCharExponent)
+      positivePrefix = patterns.positive.prefix.toBlankOption,
+      positiveSuffix = patterns.positive.suffix.toBlankOption,
+      negativePrefix = patterns.negative.flatMap { _.prefix.toBlankOption },
+      negativeSuffix = patterns.negative.flatMap { _.suffix.toBlankOption },
+      defaultNegativePrefix =
+        if (patterns.negative.isEmpty) patterns.positive.prefix.toBlankOption else None,
+      defaultNegativeSuffix =
+        if (patterns.negative.isEmpty) patterns.positive.suffix.toBlankOption else None,
+      multiplier = if (hasPercent) 100 else if (hasMile) 1000 else 1,
+      groupingSize = groupSize,
+      isGroupingUsed = (groupSize > 0),
+      minimumIntegerDigits = minIntegerDigits,
+      minimumFractionDigits = minFractionDigits,
+      minimumExponentDigits = countMinimum(patterns.positive.pattern, PatternCharExponent, true),
+      maximumIntegerDigits = maxIntegerDigits,
+      maximumFractionDigits =
+        countMaximumDigits(patterns.positive.pattern, PatternCharDecimalSeparator),
+      maximumExponentDigits = countMaximumDigits(patterns.positive.pattern, PatternCharExponent)
     )
   }
 }

@@ -36,7 +36,8 @@ object Currency {
   def getInstance(locale: Locale): Currency = {
     if (locale.getCountry == null || locale.getCountry.isEmpty) throw new NullPointerException
 
-    countryCodeToCurrencyCodeMap.get(locale.getCountry).flatMap{ currencyCodeMap.get }.getOrElse(throw new IllegalArgumentException)
+    countryCodeToCurrencyCodeMap.get(locale.getCountry)
+      .flatMap{ currencyCodeMap.get }.getOrElse(throw new IllegalArgumentException)
   }
 
   def getInstance(currencyCode: String): Currency = currencyCodeMap(currencyCode)

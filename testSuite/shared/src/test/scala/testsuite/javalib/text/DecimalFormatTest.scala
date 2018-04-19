@@ -22,7 +22,9 @@ class DecimalFormatTest extends LocaleTestSetup {
   @Test def test_constructor(): Unit = {
     val f = new DecimalFormat("##0.#####E0")
     assertEquals("toPattern", "##0.#####E0", f.toPattern)
-    assertEquals("getDecimalFormatSymbols", DecimalFormatSymbols.getInstance(), f.getDecimalFormatSymbols)
+    assertEquals("getDecimalFormatSymbols",
+                 DecimalFormatSymbols.getInstance(),
+                 f.getDecimalFormatSymbols)
     assertFalse("isParseIntegerOnly", f.isParseIntegerOnly)
     assertEquals("getMaximumIntegerDigits", 3, f.getMaximumIntegerDigits)
     assertEquals("getMinimumIntegerDigits", 1, f.getMinimumIntegerDigits)
@@ -93,7 +95,7 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("D", f.getNegativeSuffix)
 
     // TODO: this should probably be fixed in the impl to do the nulls like the JVM
-    
+
     // Check for null arguments
     //f.setPositivePrefix(null)
     //assertNull(f.getPositivePrefix)
@@ -126,7 +128,7 @@ class DecimalFormatTest extends LocaleTestSetup {
   // JavaDoc Example: If there is an explicit negative subpattern, it serves only to specify the negative prefix and
   // suffix; the number of digits, minimal digits, and other characteristics are all the same as the positive pattern.
   // That means that "#,##0.0#;(#)" produces precisely the same behavior as "#,##0.0#;(#,##0.0#)".
-  
+
   // Uhh...there's a strange bug in the JVM:
   // val f = new java.text.DecimalFormat("#,##0.0#;(#)") => f.format(-1) => "(1.0" (missing last ')')
   @Test def test_javadoc_negative_prefix(): Unit = {
@@ -152,8 +154,6 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals(f1.isDecimalSeparatorAlwaysShown, f2.isDecimalSeparatorAlwaysShown)
     assertEquals(f1.isParseBigDecimal, f2.isParseBigDecimal)
   }*/
-
-
   @Test def test_max_min_interactions(): Unit = {
     val f = new DecimalFormat("##0.#####E0")
 
@@ -244,12 +244,16 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("ABC100,000", "ABC100,000", nf.format(100000))
     assertEquals("ABC10,000,000", "ABC10,000,000", nf.format(10000000))
     assertEquals("ABC2,147,483,647", "ABC2,147,483,647", nf.format(Int.MaxValue))
-    assertEquals("ABC9,223,372,036,854,775,807", "ABC9,223,372,036,854,775,807", nf.format(Long.MaxValue))
+    assertEquals("ABC9,223,372,036,854,775,807",
+                 "ABC9,223,372,036,854,775,807",
+                 nf.format(Long.MaxValue))
     assertEquals("-1,000", "-1,000", nf.format(-1000))
     assertEquals("-100,000", "-100,000", nf.format(-100000))
     assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
     assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808", "-9,223,372,036,854,775,808", nf.format(Long.MinValue))
+    assertEquals("-9,223,372,036,854,775,808",
+                 "-9,223,372,036,854,775,808",
+                 nf.format(Long.MinValue))
   }
 
   @Test def test_format_positive_suffix(): Unit = {
@@ -262,12 +266,16 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("100,000ABC", "100,000ABC", nf.format(100000))
     assertEquals("10,000,000ABC", "10,000,000ABC", nf.format(10000000))
     assertEquals("2,147,483,647ABC", "2,147,483,647ABC", nf.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807ABC", "9,223,372,036,854,775,807ABC", nf.format(Long.MaxValue))
+    assertEquals("9,223,372,036,854,775,807ABC",
+                 "9,223,372,036,854,775,807ABC",
+                 nf.format(Long.MaxValue))
     assertEquals("-1,000", "-1,000", nf.format(-1000))
     assertEquals("-100,000", "-100,000", nf.format(-100000))
     assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
     assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808", "-9,223,372,036,854,775,808", nf.format(Long.MinValue))
+    assertEquals("-9,223,372,036,854,775,808",
+                 "-9,223,372,036,854,775,808",
+                 nf.format(Long.MinValue))
   }
 
   @Test def test_format_negative_prefix(): Unit = {
@@ -285,7 +293,9 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("ABC100,000", "ABC100,000", nf.format(-100000))
     assertEquals("ABC10,000,000", "ABC10,000,000", nf.format(-10000000))
     assertEquals("ABC2,147,483,648", "ABC2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("ABC9,223,372,036,854,775,808", "ABC9,223,372,036,854,775,808", nf.format(Long.MinValue))
+    assertEquals("ABC9,223,372,036,854,775,808",
+                 "ABC9,223,372,036,854,775,808",
+                 nf.format(Long.MinValue))
   }
 
   @Test def test_format_negative_suffix(): Unit = {
@@ -303,7 +313,9 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("-100,000ABC", "-100,000ABC", nf.format(-100000))
     assertEquals("-10,000,000ABC", "-10,000,000ABC", nf.format(-10000000))
     assertEquals("-2,147,483,648ABC", "-2,147,483,648ABC", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808ABC", "-9,223,372,036,854,775,808ABC", nf.format(Long.MinValue))
+    assertEquals("-9,223,372,036,854,775,808ABC",
+                 "-9,223,372,036,854,775,808ABC",
+                 nf.format(Long.MinValue))
   }
 
   @Test def test_format_multiplier(): Unit = {
@@ -356,8 +368,6 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("-21,4748,3648", "-21,4748,3648", df.format(Int.MinValue))
     assertEquals("-922,3372,0368,5477,5808", "-922,3372,0368,5477,5808", df.format(Long.MinValue))
   }
-
-
   @Test def test_format_decimals(): Unit = {
     val df = NumberFormat.getNumberInstance.asInstanceOf[DecimalFormat]
     assertEquals("123.457", "123.457", df.format(123.4567))
@@ -370,8 +380,6 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("-10,000.123", "-10,000.123", df.format(-10000.1234))
     assertEquals("-10,000,0000.123", "-10,000,000.123", df.format(-10000000.1234))
   }
-
-
   @Test def test_format_decimals_min_fractions(): Unit = {
     val df = NumberFormat.getNumberInstance.asInstanceOf[DecimalFormat]
     df.setMinimumFractionDigits(5)
@@ -386,12 +394,16 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("10,000.12340", "10,000.12340", df.format(10000.1234))
     assertEquals("10,000,000.12340", "10,000,000.12340", df.format(10000000.1234))
     assertEquals("2,147,483,647.00000", "2,147,483,647.00000", df.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807.00000", "9,223,372,036,854,775,807.00000", df.format(Long.MaxValue))
+    assertEquals("9,223,372,036,854,775,807.00000",
+                 "9,223,372,036,854,775,807.00000",
+                 df.format(Long.MaxValue))
     assertEquals("-1,000.12340", "-1,000.12340", df.format(-1000.1234))
     assertEquals("-10,000.12340", "-10,000.12340", df.format(-10000.1234))
     assertEquals("-10,000,0000.12340", "-10,000,000.12340", df.format(-10000000.1234))
     assertEquals("-2,147,483,648.00000", "-2,147,483,648.00000", df.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808.00000", "-9,223,372,036,854,775,808.00000", df.format(Long.MinValue))
+    assertEquals("-9,223,372,036,854,775,808.00000",
+                 "-9,223,372,036,854,775,808.00000",
+                 df.format(Long.MinValue))
   }
 
   @Test def test_format_decimals_max_fractions(): Unit = {
@@ -416,20 +428,20 @@ class DecimalFormatTest extends LocaleTestSetup {
 
     assertEquals("0.0", "0E0", f.format(0.0))
 
-    assertEquals("123.0001",                 "123.0001E0",  f.format(123.0001))
-    assertEquals("123.4567",                 "123.4567E0",  f.format(123.4567))
-    assertEquals("1000.1234",                "1.0001234E3", f.format(1000.1234))
-    assertEquals("10000.1234",               "10.000123E3", f.format(10000.1234))
-    assertEquals("10000000.1234",            "10E6",        f.format(10000000.1234))
-    assertEquals("21,4748,3647",             "2.1474836E9", f.format(Int.MaxValue))
-    assertEquals("922,3372,0368,5477,5807",  "9.223372E18", f.format(Long.MaxValue))
+    assertEquals("123.0001", "123.0001E0", f.format(123.0001))
+    assertEquals("123.4567", "123.4567E0", f.format(123.4567))
+    assertEquals("1000.1234", "1.0001234E3", f.format(1000.1234))
+    assertEquals("10000.1234", "10.000123E3", f.format(10000.1234))
+    assertEquals("10000000.1234", "10E6", f.format(10000000.1234))
+    assertEquals("21,4748,3647", "2.1474836E9", f.format(Int.MaxValue))
+    assertEquals("922,3372,0368,5477,5807", "9.223372E18", f.format(Long.MaxValue))
 
-    assertEquals("123.0001",                 "-123.0001E0",  f.format(-123.0001))
-    assertEquals("123.4567",                 "-123.4567E0",  f.format(-123.4567))
-    assertEquals("1000.1234",                "-1.0001234E3", f.format(-1000.1234))
-    assertEquals("10000.1234",               "-10.000123E3", f.format(-10000.1234))
-    assertEquals("10000000.1234",            "-10E6",        f.format(-10000000.1234))
-    assertEquals("-21,4748,3648",            "-2.1474836E9", f.format(Int.MinValue))
+    assertEquals("123.0001", "-123.0001E0", f.format(-123.0001))
+    assertEquals("123.4567", "-123.4567E0", f.format(-123.4567))
+    assertEquals("1000.1234", "-1.0001234E3", f.format(-1000.1234))
+    assertEquals("10000.1234", "-10.000123E3", f.format(-10000.1234))
+    assertEquals("10000000.1234", "-10E6", f.format(-10000000.1234))
+    assertEquals("-21,4748,3648", "-2.1474836E9", f.format(Int.MinValue))
     assertEquals("-922,3372,0368,5477,5808", "-9.223372E18", f.format(Long.MinValue))
   }
 
@@ -438,41 +450,41 @@ class DecimalFormatTest extends LocaleTestSetup {
 
     assertEquals("0.0", "0E0", f.format(0.0))
 
-    assertEquals("123.4567",                 "1.235E2",   f.format(123.4567))
-    assertEquals("123.00010",                "1.23E2",    f.format(123.0001))
-    assertEquals("1000.1234",                "1E3",       f.format(1000.1234))
-    assertEquals("10000.1234",               "1E4",       f.format(10000.1234))
-    assertEquals("100000000.1234",           "1E7",       f.format(10000000.1234))
-    assertEquals("21,4748,3647",             "2.147E9",   f.format(Int.MaxValue))
-    assertEquals("922,3372,0368,5477,5807",  "9.223E18",  f.format(Long.MaxValue))
+    assertEquals("123.4567", "1.235E2", f.format(123.4567))
+    assertEquals("123.00010", "1.23E2", f.format(123.0001))
+    assertEquals("1000.1234", "1E3", f.format(1000.1234))
+    assertEquals("10000.1234", "1E4", f.format(10000.1234))
+    assertEquals("100000000.1234", "1E7", f.format(10000000.1234))
+    assertEquals("21,4748,3647", "2.147E9", f.format(Int.MaxValue))
+    assertEquals("922,3372,0368,5477,5807", "9.223E18", f.format(Long.MaxValue))
 
-    assertEquals("-123.45670",               "-1.235E2",  f.format(-123.4567))
-    assertEquals("-123.00010",               "-1.23E2",   f.format(-123.0001))
-    assertEquals("-1000.12340",              "-1E3",      f.format(-1000.1234))
-    assertEquals("-10000.12340",             "-1E4",      f.format(-10000.1234))
-    assertEquals("-100000000.12340",         "-1E7",      f.format(-10000000.1234))
-    assertEquals("-21,4748,3648",            "-2.147E9",  f.format(Int.MinValue))
+    assertEquals("-123.45670", "-1.235E2", f.format(-123.4567))
+    assertEquals("-123.00010", "-1.23E2", f.format(-123.0001))
+    assertEquals("-1000.12340", "-1E3", f.format(-1000.1234))
+    assertEquals("-10000.12340", "-1E4", f.format(-10000.1234))
+    assertEquals("-100000000.12340", "-1E7", f.format(-10000000.1234))
+    assertEquals("-21,4748,3648", "-2.147E9", f.format(Int.MinValue))
     assertEquals("-922,3372,0368,5477,5808", "-9.223E18", f.format(Long.MinValue))
   }
 
   @Test def test_format_exponents_one_integer_min_one_fractions(): Unit = {
     val f = new DecimalFormat("0.0##E0")
 
-    assertEquals("1",                        "1.0E0",    f.format(1))
-    assertEquals("10",                       "1.0E1",    f.format(10))
-    assertEquals("100",                      "1.0E2",    f.format(100))
-    assertEquals("1000",                     "1.0E3",    f.format(1000.1234))
-    assertEquals("1000.1234",                "1.0E3",    f.format(1000.1234))
-    assertEquals("10000.1234",               "1.0E4",    f.format(10000.1234))
-    assertEquals("100000000.1234",           "1.0E7",    f.format(10000000.1234))
+    assertEquals("1", "1.0E0", f.format(1))
+    assertEquals("10", "1.0E1", f.format(10))
+    assertEquals("100", "1.0E2", f.format(100))
+    assertEquals("1000", "1.0E3", f.format(1000.1234))
+    assertEquals("1000.1234", "1.0E3", f.format(1000.1234))
+    assertEquals("10000.1234", "1.0E4", f.format(10000.1234))
+    assertEquals("100000000.1234", "1.0E7", f.format(10000000.1234))
 
-    assertEquals("-1",                       "-1.0E0",   f.format(-1))
-    assertEquals("-10",                      "-1.0E1",   f.format(-10))
-    assertEquals("-100",                     "-1.0E2",   f.format(-100))
-    assertEquals("-1000",                    "-1.0E3",   f.format(-1000.1234))
-    assertEquals("-1000.1234",              "-1.0E3",    f.format(-1000.1234))
-    assertEquals("-10000.1234",             "-1.0E4",    f.format(-10000.1234))
-    assertEquals("-100000000.1234",         "-1.0E7",    f.format(-10000000.1234))
+    assertEquals("-1", "-1.0E0", f.format(-1))
+    assertEquals("-10", "-1.0E1", f.format(-10))
+    assertEquals("-100", "-1.0E2", f.format(-100))
+    assertEquals("-1000", "-1.0E3", f.format(-1000.1234))
+    assertEquals("-1000.1234", "-1.0E3", f.format(-1000.1234))
+    assertEquals("-10000.1234", "-1.0E4", f.format(-10000.1234))
+    assertEquals("-100000000.1234", "-1.0E7", f.format(-10000000.1234))
   }
 
   // Exponent should always be in multiples of two (2,-2,4,-4,6,-6...)
@@ -481,9 +493,9 @@ class DecimalFormatTest extends LocaleTestSetup {
 
     assertEquals("0E0", "0E0", f.format(0))
 
-    assertEquals("1E0",     "1E0",     f.format(1))
-    assertEquals("12E0",    "12E0",    f.format(12))
-    assertEquals("1.23E2",  "1.23E2",  f.format(123))
+    assertEquals("1E0", "1E0", f.format(1))
+    assertEquals("12E0", "12E0", f.format(12))
+    assertEquals("1.23E2", "1.23E2", f.format(123))
     assertEquals("12.34E2", "12.34E2", f.format(1234))
 
     assertEquals("1.234E4", "1.234E4", f.format(12345))
@@ -491,18 +503,18 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("1.235E6", "1.235E6", f.format(1234567))
     assertEquals("12.35E6", "12.35E6", f.format(12345678))
 
-    assertEquals("-1E0",     "-1E0",     f.format(-1))
-    assertEquals("-12E0",    "-12E0",    f.format(-12))
-    assertEquals("-1.23E2",  "-1.23E2",  f.format(-123))
+    assertEquals("-1E0", "-1E0", f.format(-1))
+    assertEquals("-12E0", "-12E0", f.format(-12))
+    assertEquals("-1.23E2", "-1.23E2", f.format(-123))
     assertEquals("-12.34E2", "-12.34E2", f.format(-1234))
     assertEquals("-1.234E4", "-1.234E4", f.format(-12345))
     assertEquals("-12.35E4", "-12.35E4", f.format(-123456))
     assertEquals("-1.235E6", "-1.235E6", f.format(-1234567))
     assertEquals("-12.35E6", "-12.35E6", f.format(-12345678))
 
-    assertEquals("1E0",      "10E-2",    f.format(.1))
-    assertEquals("12E-2",    "12E-2",    f.format(.12))
-    assertEquals("12.3E-2",  "12.3E-2",  f.format(.123))
+    assertEquals("1E0", "10E-2", f.format(.1))
+    assertEquals("12E-2", "12E-2", f.format(.12))
+    assertEquals("12.3E-2", "12.3E-2", f.format(.123))
     assertEquals("12.34E-2", "12.34E-2", f.format(.1234))
     assertEquals("12.35E-2", "12.35E-2", f.format(.12345))
 
@@ -512,9 +524,9 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("1.234E-6", "1.234E-6", f.format(.000001234))
     assertEquals("12.34E-8", "12.34E-8", f.format(.0000001234))
 
-    assertEquals("-1E0",      "-10E-2",    f.format(-.1))
-    assertEquals("-12E-2",    "-12E-2",    f.format(-.12))
-    assertEquals("-12.3E-2",  "-12.3E-2",  f.format(-.123))
+    assertEquals("-1E0", "-10E-2", f.format(-.1))
+    assertEquals("-12E-2", "-12E-2", f.format(-.12))
+    assertEquals("-12.3E-2", "-12.3E-2", f.format(-.123))
     assertEquals("-12.34E-2", "-12.34E-2", f.format(-.1234))
 
     assertEquals("-12.34E-4", "-12.34E-4", f.format(-.001234))
@@ -530,10 +542,10 @@ class DecimalFormatTest extends LocaleTestSetup {
 
     assertEquals("0E0", "0E0", f.format(0))
 
-    assertEquals("1E0",      "1E0",      f.format(1))
-    assertEquals("12E0",     "12E0",     f.format(12))
-    assertEquals("123E0",    "123E0",    f.format(123))
-    assertEquals("1.234E3",  "1.234E3",  f.format(1234))
+    assertEquals("1E0", "1E0", f.format(1))
+    assertEquals("12E0", "12E0", f.format(12))
+    assertEquals("123E0", "123E0", f.format(123))
+    assertEquals("1.234E3", "1.234E3", f.format(1234))
     assertEquals("12.345E3", "12.345E3", f.format(12345))
     assertEquals("123.46E3", "123.46E3", f.format(123456))
     assertEquals("1.2346E6", "1.2346E6", f.format(1234567))
@@ -541,10 +553,10 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("123.46E6", "123.46E6", f.format(123456789))
     assertEquals("1.2346E9", "1.2346E9", f.format(1234567890))
 
-    assertEquals("-1E0",      "-1E0",      f.format(-1))
-    assertEquals("-12E0",     "-12E0",     f.format(-12))
-    assertEquals("-123E0",    "-123E0",    f.format(-123))
-    assertEquals("-1.234E3",  "-1.234E3",  f.format(-1234))
+    assertEquals("-1E0", "-1E0", f.format(-1))
+    assertEquals("-12E0", "-12E0", f.format(-12))
+    assertEquals("-123E0", "-123E0", f.format(-123))
+    assertEquals("-1.234E3", "-1.234E3", f.format(-1234))
     assertEquals("-12.345E3", "-12.345E3", f.format(-12345))
     assertEquals("-123.46E3", "-123.46E3", f.format(-123456))
     assertEquals("-1.2346E6", "-1.2346E6", f.format(-1234567))
@@ -552,20 +564,20 @@ class DecimalFormatTest extends LocaleTestSetup {
     assertEquals("-123.46E6", "-123.46E6", f.format(-123456789))
     assertEquals("-1.2346E9", "-1.2346E9", f.format(-1234567890))
 
-    assertEquals("100E-3",               "100E-3",    f.format(.1))
-    assertEquals("120E-3",               "120E-3",    f.format(.12))
-    assertEquals("123E-3",               "123E-3",    f.format(.123))
-    assertEquals("123.4E-3",             "123.4E-3",  f.format(.1234))
-    assertEquals("123.45E-3",            "123.45E-3", f.format(.12345))
-    assertEquals("123.46E-3 (.123456)",  "123.46E-3", f.format(.123456))
+    assertEquals("100E-3", "100E-3", f.format(.1))
+    assertEquals("120E-3", "120E-3", f.format(.12))
+    assertEquals("123E-3", "123E-3", f.format(.123))
+    assertEquals("123.4E-3", "123.4E-3", f.format(.1234))
+    assertEquals("123.45E-3", "123.45E-3", f.format(.12345))
+    assertEquals("123.46E-3 (.123456)", "123.46E-3", f.format(.123456))
     assertEquals("123.46E-3 (.1234567)", "123.46E-3", f.format(.1234567))
 
-    assertEquals("-100E-3",               "-100E-3",    f.format(-.1))
-    assertEquals("-120E-3",               "-120E-3",    f.format(-.12))
-    assertEquals("-123E-3",               "-123E-3",    f.format(-.123))
-    assertEquals("-123.4E-3",             "-123.4E-3",  f.format(-.1234))
-    assertEquals("-123.45E-3",            "-123.45E-3", f.format(-.12345))
-    assertEquals("-123.46E-3 (.123456)",  "-123.46E-3", f.format(-.123456))
+    assertEquals("-100E-3", "-100E-3", f.format(-.1))
+    assertEquals("-120E-3", "-120E-3", f.format(-.12))
+    assertEquals("-123E-3", "-123E-3", f.format(-.123))
+    assertEquals("-123.4E-3", "-123.4E-3", f.format(-.1234))
+    assertEquals("-123.45E-3", "-123.45E-3", f.format(-.12345))
+    assertEquals("-123.46E-3 (.123456)", "-123.46E-3", f.format(-.123456))
     assertEquals("-123.46E-3 (.1234567)", "-123.46E-3", f.format(-.1234567))
 
     assertEquals("1.234E-3", "1.234E-3", f.format(.001234))
@@ -586,22 +598,22 @@ class DecimalFormatTest extends LocaleTestSetup {
 
     assertEquals("0", "$0.00", f.format(0))
 
-    assertEquals(".12",         "$0.12",          f.format(.12))
-    assertEquals("123",         "$123.00",        f.format(123))
-    assertEquals("123.45",      "$123.45",        f.format(123.45))
-    assertEquals("1234.56",     "$1,234.56",      f.format(1234.56))
-    assertEquals("12345.67",    "$12,345.67",     f.format(12345.67))
-    assertEquals("123456.78",   "$123,456.78",    f.format(123456.78))
-    assertEquals("1234567.89",  "$1,234,567.89",  f.format(1234567.89))
+    assertEquals(".12", "$0.12", f.format(.12))
+    assertEquals("123", "$123.00", f.format(123))
+    assertEquals("123.45", "$123.45", f.format(123.45))
+    assertEquals("1234.56", "$1,234.56", f.format(1234.56))
+    assertEquals("12345.67", "$12,345.67", f.format(12345.67))
+    assertEquals("123456.78", "$123,456.78", f.format(123456.78))
+    assertEquals("1234567.89", "$1,234,567.89", f.format(1234567.89))
     assertEquals("12345678.90", "$12,345,678.90", f.format(12345678.90))
 
-    assertEquals("-.12",         "($0.12)",          f.format(-.12))
-    assertEquals("-123",         "($123.00)",        f.format(-123))
-    assertEquals("-123.45",      "($123.45)",        f.format(-123.45))
-    assertEquals("-1234.56",     "($1,234.56)",      f.format(-1234.56))
-    assertEquals("-12345.67",    "($12,345.67)",     f.format(-12345.67))
-    assertEquals("-123456.78",   "($123,456.78)",    f.format(-123456.78))
-    assertEquals("-1234567.89",  "($1,234,567.89)",  f.format(-1234567.89))
+    assertEquals("-.12", "($0.12)", f.format(-.12))
+    assertEquals("-123", "($123.00)", f.format(-123))
+    assertEquals("-123.45", "($123.45)", f.format(-123.45))
+    assertEquals("-1234.56", "($1,234.56)", f.format(-1234.56))
+    assertEquals("-12345.67", "($12,345.67)", f.format(-12345.67))
+    assertEquals("-123456.78", "($123,456.78)", f.format(-123456.78))
+    assertEquals("-1234567.89", "($1,234,567.89)", f.format(-1234567.89))
     assertEquals("-12345678.90", "($12,345,678.90)", f.format(-12345678.90))
   }
 
@@ -617,16 +629,17 @@ class DecimalFormatTest extends LocaleTestSetup {
       ("##0.##E00", "##0.##E00")
     )
 
-    patternTests.foreach{ case (in: String, out: String) =>
-      val f = new DecimalFormat(in)
-      val p = new DecimalFormat("foo"+in)
-      val s = new DecimalFormat(in+"bar")
-      val b = new DecimalFormat("foo"+in+"bar")
+    patternTests.foreach {
+      case (in: String, out: String) =>
+        val f = new DecimalFormat(in)
+        val p = new DecimalFormat("foo" + in)
+        val s = new DecimalFormat(in + "bar")
+        val b = new DecimalFormat("foo" + in + "bar")
 
-      assertEquals(s"$in, $out", out, f.toPattern)
-      assertEquals(s"foo $in, $out", "foo"+out, p.toPattern)
-      assertEquals(s"$in, $out bar", out+"bar", s.toPattern)
-      assertEquals(s"foo $in, $out bar", "foo"+out+"bar", b.toPattern)
+        assertEquals(s"$in, $out", out, f.toPattern)
+        assertEquals(s"foo $in, $out", "foo" + out, p.toPattern)
+        assertEquals(s"$in, $out bar", out + "bar", s.toPattern)
+        assertEquals(s"foo $in, $out bar", "foo" + out + "bar", b.toPattern)
     }
   }
 
@@ -640,7 +653,6 @@ class DecimalFormatTest extends LocaleTestSetup {
       ("0.0;(0.0)", "#0.0;(#0.0)"),
       ("##0.##E0;(##0.##E0)", "##0.##E0;(##0.##E0)"),
       ("##0.##E00;(##0.##E00)", "##0.##E00;(##0.##E00)"),
-
       // Add positive prefix/sufixes
       ("foo#,##0.##bar;(#,##0.##)", "foo#,##0.##bar;(#,##0.##)"),
       ("foo#,##0.0#bar;(#,##0.0#)", "foo#,##0.0#bar;(#,##0.0#)"),
@@ -651,10 +663,11 @@ class DecimalFormatTest extends LocaleTestSetup {
       ("foo##0.##E0bar;(##0.##E0)", "foo##0.##E0bar;(##0.##E0)"),
       ("foo##0.##E00bar;(##0.##E00)", "foo##0.##E00bar;(##0.##E00)")
     )
-    patternTests.foreach{ case (in: String, out: String) =>
-      val f = new DecimalFormat(in)
+    patternTests.foreach {
+      case (in: String, out: String) =>
+        val f = new DecimalFormat(in)
 
-      assertEquals(s"$in, $out", out, f.toPattern)
+        assertEquals(s"$in, $out", out, f.toPattern)
     }
   }
 }
