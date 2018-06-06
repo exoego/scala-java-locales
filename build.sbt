@@ -1,10 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import sbt.Keys._
-import LDMLTasks._
 
 val cldrVersion = settingKey[String]("The version of CLDR used.")
-lazy val downloadFromZip: TaskKey[Unit] =
-  taskKey[Unit]("Download the sbt zip and extract it")
 
 val commonSettings: Seq[Setting[_]] = Seq(
   cldrVersion := "33",
@@ -98,7 +95,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .settings(commonSettings: _*)
   .settings(
-    name := "scala-java-locales",
+    name := "scala-java-locales"
   )
   .jvmConfigure(_.enablePlugins(LocalesPlugin))
   .jsConfigure(_.enablePlugins(LocalesPlugin))
@@ -140,6 +137,7 @@ lazy val testSuite = crossProject(JVMPlatform, JSPlatform, NativePlatform).
   nativeSettings(
     parallelExecution in Test := false,
     name := "scala-java-locales testSuite on ScalaNative",
+    nativeLinkStubs := true
   ).
   jvmSettings(
     // Fork the JVM test to ensure that the custom flags are set
@@ -149,7 +147,7 @@ lazy val testSuite = crossProject(JVMPlatform, JSPlatform, NativePlatform).
     javaOptions in Test ++= Seq("-Duser.language=en", "-Duser.country=", "-Djava.locale.providers=CLDR", "-Dfile.encoding=UTF8"),
     name := "scala-java-locales testSuite on JVM"
   ).
-  // nativeConfigure(_.dependsOn(coreNative, macroUtils)).
+  nativeConfigure(_.dependsOn(coreNative, macroUtils)).
   jsConfigure(_.dependsOn(coreJS, macroUtils)).
   jvmConfigure(_.dependsOn(coreJVM, macroUtils))
 
