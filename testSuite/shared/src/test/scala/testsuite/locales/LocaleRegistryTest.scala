@@ -3,8 +3,7 @@ package testsuite.locales
 import java.util.Locale
 
 import locales.LocaleRegistry
-import org.junit.Assert._
-import org.junit.{Before, Test}
+import utest._
 
 import locales.cldr.LDML
 import locales.cldr.data._
@@ -12,13 +11,13 @@ import locales.cldr.data._
 import testsuite.utils.Platform
 import testsuite.utils.LocaleTestSetup
 
-class LocaleRegistryTest extends LocaleTestSetup {
+final case class LocaleTestCase(ldml: LDML, tag: String, tostring: String,
+    toLanguageTag: String, hasExtensions: Boolean, parent: Option[LDML])
+
+object LocaleRegistryTest extends TestSuite with LocaleTestSetup {
   // Clean up the locale database, there are different implementations for
   // the JVM and JS
-  @Before def cleanup: Unit = super.cleanDatabase
-
-  case class LocaleTestCase(ldml: LDML, tag: String, tostring: String,
-      toLanguageTag: String, hasExtensions: Boolean, parent: Option[LDML])
+  override def utestBeforeEach(path: Seq[String]): Unit = super.cleanDatabase
 
   // Test some locales and their numeric systems
   val testData = List(
@@ -39,38 +38,40 @@ class LocaleRegistryTest extends LocaleTestSetup {
     LocaleTestCase(zh_Hant_MO, "zh-Hant-MO", "zh_MO_#Hant", "zh-Hant-MO", hasExtensions = false, Some(zh_Hant_HK))
   )
 
-  @Test def test_install(): Unit = {
-    if (!Platform.executingInJVM) {
-      testData.foreach { l =>
-        LocaleRegistry.installLocale(l.ldml)
+  val tests = Tests {
+    'test_install - {
+      if (!Platform.executingInJVM) {
+        testData.foreach { l =>
+          LocaleRegistry.installLocale(l.ldml)
+        }
+      }
+
+      testData.foreach { ltc =>
+        val locale = Locale.forLanguageTag(ltc.tag)
+        assertEquals(ltc.tostring, locale.toString)
+        assertEquals(ltc.toLanguageTag, locale.toLanguageTag)
+        assertEquals(ltc.hasExtensions, locale.hasExtensions)
       }
     }
 
-    testData.foreach { ltc =>
-      val locale = Locale.forLanguageTag(ltc.tag)
-      assertEquals(ltc.tostring, locale.toString)
-      assertEquals(ltc.toLanguageTag, locale.toLanguageTag)
-      assertEquals(ltc.hasExtensions, locale.hasExtensions)
-    }
-  }
-
-  @Test def test_install_and_retrieve(): Unit = {
-    if (!Platform.executingInJVM) testData.foreach { l =>
-      LocaleRegistry.installLocale(l.ldml)
-      assertEquals(Some(l.ldml), LocaleRegistry.ldml(l.ldml.toLocale))
-      assertEquals(l.parent, LocaleRegistry.ldml(l.ldml.toLocale).flatMap(_.parent))
-    }
-  }
-
-  @Test def test_available_locales(): Unit = {
-    super.cleanDatabase
-    val originalLength = Locale.getAvailableLocales.length
-    if (!Platform.executingInJVM) {
-      testData.foreach { l =>
+    'test_install_and_retrieve - {
+      if (!Platform.executingInJVM) testData.foreach { l =>
         LocaleRegistry.installLocale(l.ldml)
+        assertEquals(Some(l.ldml), LocaleRegistry.ldml(l.ldml.toLocale))
+        assertEquals(l.parent, LocaleRegistry.ldml(l.ldml.toLocale).flatMap(_.parent))
       }
-      assertEquals(originalLength + testData.length - 1, //root is already installed
-        Locale.getAvailableLocales.length)
+    }
+
+    'test_available_locales - {
+      super.cleanDatabase
+      val originalLength = Locale.getAvailableLocales.length
+      if (!Platform.executingInJVM) {
+        testData.foreach { l =>
+          LocaleRegistry.installLocale(l.ldml)
+        }
+        assertEquals(originalLength + testData.length - 1, //root is already installed
+          Locale.getAvailableLocales.length)
+      }
     }
   }
 }

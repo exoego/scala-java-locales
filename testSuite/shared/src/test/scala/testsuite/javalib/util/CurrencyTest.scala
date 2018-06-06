@@ -1,10 +1,11 @@
 package testsuite.javalib.util
 
 import java.util.{Currency, Locale}
-import org.junit.Assert._
+import utest._
+import testsuite.utils.LocaleTestSetup
 
 // Shared test data for JVM/JS so it's not duplicated
-trait CurrencyTest {
+trait CurrencyTest extends LocaleTestSetup {
   case class CurrencyTestResults(
       expectedCurrencyCode: String,
       expectedNumericCode: Int,

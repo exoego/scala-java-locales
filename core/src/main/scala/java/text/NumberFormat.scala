@@ -94,7 +94,7 @@ object NumberFormat {
     LocaleRegistry
       .ldml(inLocale)
       .flatMap { ldml =>
-        val ptrn = patternsR(ldml, _.decimalPattern)
+        val ptrn = patternsR(ldml, _.decimalFormat)
         ptrn.map(new DecimalFormat(_, DecimalFormatSymbols.getInstance(inLocale))).map(setup)
       }
       .getOrElse(new DecimalFormat("", DecimalFormatSymbols.getInstance(inLocale)))
@@ -106,7 +106,7 @@ object NumberFormat {
     val f = LocaleRegistry
       .ldml(inLocale)
       .flatMap { ldml =>
-        val ptrn = patternsR(ldml, _.decimalPattern)
+        val ptrn = patternsR(ldml, _.decimalFormat)
         ptrn
           .map(
             p =>
@@ -130,7 +130,7 @@ object NumberFormat {
     LocaleRegistry
       .ldml(inLocale)
       .flatMap { ldml =>
-        val ptrn = patternsR(ldml, _.currencyPattern)
+        val ptrn = patternsR(ldml, _.currencyFormat)
         ptrn.map(new DecimalFormat(_, DecimalFormatSymbols.getInstance(inLocale))).map(setup)
       }
       .getOrElse(new DecimalFormat("", DecimalFormatSymbols.getInstance(inLocale)))
@@ -142,7 +142,7 @@ object NumberFormat {
     LocaleRegistry
       .ldml(inLocale)
       .flatMap { ldml =>
-        val ptrn = patternsR(ldml, _.percentPattern)
+        val ptrn = patternsR(ldml, _.percentFormat)
         ptrn.map(new DecimalFormat(_, DecimalFormatSymbols.getInstance(inLocale))).map(percentSetup)
       }
       .getOrElse(new DecimalFormat("", DecimalFormatSymbols.getInstance(inLocale)))

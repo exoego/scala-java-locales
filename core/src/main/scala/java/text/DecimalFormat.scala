@@ -16,7 +16,7 @@ class DecimalFormat(private[this] val pattern: String,
     this(
       LocaleRegistry
         .ldml(Locale.getDefault)
-        .flatMap { _.numberPatterns.decimalPattern }
+        .flatMap { _.numberPatterns.decimalFormat }
         .getOrElse("#,##0.##"),
       DecimalFormatSymbols.getInstance()
     )

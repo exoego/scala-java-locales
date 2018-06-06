@@ -4,8 +4,7 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 import locales.LocaleRegistry
-import org.junit.{Before, Ignore, Test}
-import org.junit.Assert._
+import utest._
 
 import locales.cldr.LDML
 import locales.cldr.data._
@@ -14,10 +13,10 @@ import testsuite.utils.Platform
 import testsuite.utils.LocaleTestSetup
 import testsuite.utils.AssertThrows.expectThrows
 
-class DecimalFormatSymbolsTest extends LocaleTestSetup {
+object DecimalFormatSymbolsTest extends TestSuite with LocaleTestSetup {
   // Clean up the locale database, there are different implementations for
   // the JVM and JS
-  @Before def cleanup: Unit = super.cleanDatabase
+  override def utestBeforeEach(path: Seq[String]): Unit = super.cleanDatabase
 
   case class LocaleTestItem(ldml: LDML, tag: String, cldr21: Boolean = false)
 
@@ -150,134 +149,136 @@ class DecimalFormatSymbolsTest extends LocaleTestSetup {
     assertEquals(symbols(10), dfs.getExponentSeparator)
   }
 
-  @Test def test_default_locales_decimal_format_symbol(): Unit = {
-    standardLocalesData.foreach {
-      case (l, symbols) =>
-        val dfs = DecimalFormatSymbols.getInstance(l)
-        test_dfs(dfs, symbols)
-    }
-  }
-
-  @Test def test_extra_locales_decimal_format_symbol(): Unit = {
-    extraLocalesData.foreach {
-      case (LocaleTestItem(d, tag, _), symbols) =>
-        if (!Platform.executingInJVM) {
-          LocaleRegistry.installLocale(d)
-        }
-        val l = Locale.forLanguageTag(tag)
-        val dfs = DecimalFormatSymbols.getInstance(l)
-        test_dfs(dfs, symbols)
-    }
-  }
-
-  // These tests give the same data on CLDR 21
-  @Test def test_extra_locales_not_agreeing_decimal_format_symbol(): Unit = {
-    localesDiff.foreach {
-      case (LocaleTestItem(d, tag, cldr21), symbols) =>
-        if (!Platform.executingInJVM) {
-          LocaleRegistry.installLocale(d)
-        }
-        val l = Locale.forLanguageTag(tag)
-        val dfs = DecimalFormatSymbols.getInstance(l)
-        if (Platform.executingInJVM && cldr21) {
+  val tests = Tests {
+    'test_default_locales_decimal_format_symbol - {
+      standardLocalesData.foreach {
+        case (l, symbols) =>
+          val dfs = DecimalFormatSymbols.getInstance(l)
           test_dfs(dfs, symbols)
-        }
-        if (!Platform.executingInJVM && !cldr21) {
+      }
+    }
+
+    'test_extra_locales_decimal_format_symbol - {
+      extraLocalesData.foreach {
+        case (LocaleTestItem(d, tag, _), symbols) =>
+          if (!Platform.executingInJVM) {
+            LocaleRegistry.installLocale(d)
+          }
+          val l = Locale.forLanguageTag(tag)
+          val dfs = DecimalFormatSymbols.getInstance(l)
           test_dfs(dfs, symbols)
-        }
+      }
     }
-  }
 
-  @Test def test_available_locales(): Unit = {
-    val initial = DecimalFormatSymbols.getAvailableLocales.length
-    assertTrue(initial > 0)
-    if (!Platform.executingInJVM) {
-      LocaleRegistry.installLocale(af)
-      // In JS all locales have a decimal format symbols instance
-      assertEquals(initial + 1, DecimalFormatSymbols.getAvailableLocales.length)
+    // These tests give the same data on CLDR 21
+    'test_extra_locales_not_agreeing_decimal_format_symbol - {
+      localesDiff.foreach {
+        case (LocaleTestItem(d, tag, cldr21), symbols) =>
+          if (!Platform.executingInJVM) {
+            LocaleRegistry.installLocale(d)
+          }
+          val l = Locale.forLanguageTag(tag)
+          val dfs = DecimalFormatSymbols.getInstance(l)
+          if (Platform.executingInJVM && cldr21) {
+            test_dfs(dfs, symbols)
+          }
+          if (!Platform.executingInJVM && !cldr21) {
+            test_dfs(dfs, symbols)
+          }
+      }
     }
-  }
 
-  @Test def test_defaults(): Unit = {
-    val dfs = new DecimalFormatSymbols()
-    test_dfs(dfs, englishSymbols)
-  }
-
-  @Test def test_setters(): Unit = {
-    val dfs = new DecimalFormatSymbols()
-    dfs.setZeroDigit('1')
-    assertEquals('1', dfs.getZeroDigit)
-    dfs.setGroupingSeparator('1')
-    assertEquals('1', dfs.getGroupingSeparator)
-    dfs.setDecimalSeparator('1')
-    assertEquals('1', dfs.getDecimalSeparator)
-    dfs.setPerMill('1')
-    assertEquals('1', dfs.getPerMill)
-    dfs.setPercent('1')
-    assertEquals('1', dfs.getPercent)
-    dfs.setDigit('1')
-    assertEquals('1', dfs.getDigit)
-    dfs.setPatternSeparator('1')
-    assertEquals('1', dfs.getPatternSeparator)
-    dfs.setMinusSign('1')
-    assertEquals('1', dfs.getMinusSign)
-
-    dfs.setInfinity(null)
-    assertNull(dfs.getInfinity)
-    dfs.setInfinity("Inf")
-    assertEquals("Inf", dfs.getInfinity)
-
-    dfs.setNaN(null)
-    assertNull(dfs.getNaN)
-    dfs.setNaN("nan")
-    assertEquals("nan", dfs.getNaN)
-
-    expectThrows(classOf[NullPointerException], dfs.setExponentSeparator(null))
-    dfs.setExponentSeparator("exp")
-    assertEquals("exp", dfs.getExponentSeparator)
-  }
-
-  @Test def test_clone(): Unit = {
-    val dfs = new DecimalFormatSymbols()
-    assertEquals(dfs, dfs.clone())
-    assertNotSame(dfs, dfs.clone())
-  }
-
-  @Test def test_equals(): Unit = {
-    val dfs = new DecimalFormatSymbols()
-    assertEquals(dfs, dfs)
-    assertSame(dfs, dfs)
-    assertFalse(dfs.equals(null))
-    assertFalse(dfs.equals(1))
-    val dfs2 = new DecimalFormatSymbols()
-    assertEquals(dfs, dfs2)
-    assertNotSame(dfs, dfs2)
-    dfs2.setDigit('i')
-    assertFalse(dfs.equals(dfs2))
-  }
-
-  @Test def test_bad_tag_matches_root_dfs(): Unit = {
-    val l = Locale.forLanguageTag("no_NO")
-    val dfs = DecimalFormatSymbols.getInstance(l)
-    standardLocalesData.foreach {
-      case (Locale.ROOT, symbols) =>
-        test_dfs(dfs, symbols)
-      case (_, _) =>
+    'test_available_locales - {
+      val initial = DecimalFormatSymbols.getAvailableLocales.length
+      assertTrue(initial > 0)
+      if (!Platform.executingInJVM) {
+        LocaleRegistry.installLocale(af)
+        // In JS all locales have a decimal format symbols instance
+        assertEquals(initial + 1, DecimalFormatSymbols.getAvailableLocales.length)
+      }
     }
-  }
 
-  @Ignore @Test def test_hash_code(): Unit = {
-    val dfs = new DecimalFormatSymbols()
-    assertEquals(dfs.hashCode, dfs.hashCode)
-    val dfs2 = new DecimalFormatSymbols()
-    assertEquals(dfs.hashCode, dfs2.hashCode)
-    dfs2.setExponentSeparator("abc")
-    // These tests should fail but they pass on the JVM
-    assertEquals(dfs.hashCode, dfs2.hashCode)
-    standardLocalesData.filter(_._1 != Locale.ROOT).foreach {
-      case (l, symbols) =>
-        val df = DecimalFormatSymbols.getInstance(l)
-        assertFalse(dfs.hashCode.equals(df.hashCode))
+    'test_defaults - {
+      val dfs = new DecimalFormatSymbols()
+      test_dfs(dfs, englishSymbols)
     }
+
+    'test_setters - {
+      val dfs = new DecimalFormatSymbols()
+      dfs.setZeroDigit('1')
+      assertEquals('1', dfs.getZeroDigit)
+      dfs.setGroupingSeparator('1')
+      assertEquals('1', dfs.getGroupingSeparator)
+      dfs.setDecimalSeparator('1')
+      assertEquals('1', dfs.getDecimalSeparator)
+      dfs.setPerMill('1')
+      assertEquals('1', dfs.getPerMill)
+      dfs.setPercent('1')
+      assertEquals('1', dfs.getPercent)
+      dfs.setDigit('1')
+      assertEquals('1', dfs.getDigit)
+      dfs.setPatternSeparator('1')
+      assertEquals('1', dfs.getPatternSeparator)
+      dfs.setMinusSign('1')
+      assertEquals('1', dfs.getMinusSign)
+
+      dfs.setInfinity(null)
+      assertNull(dfs.getInfinity)
+      dfs.setInfinity("Inf")
+      assertEquals("Inf", dfs.getInfinity)
+
+      dfs.setNaN(null)
+      assertNull(dfs.getNaN)
+      dfs.setNaN("nan")
+      assertEquals("nan", dfs.getNaN)
+
+      expectThrows(classOf[NullPointerException], dfs.setExponentSeparator(null))
+      dfs.setExponentSeparator("exp")
+      assertEquals("exp", dfs.getExponentSeparator)
+    }
+
+    'test_clone - {
+      val dfs = new DecimalFormatSymbols()
+      assertEquals(dfs, dfs.clone())
+      assertNotSame(dfs, dfs.clone())
+    }
+
+    'test_equals - {
+      val dfs = new DecimalFormatSymbols()
+      assertEquals(dfs, dfs)
+      assertSame(dfs, dfs)
+      assertFalse(dfs.equals(null))
+      assertFalse(dfs.equals(1))
+      val dfs2 = new DecimalFormatSymbols()
+      assertEquals(dfs, dfs2)
+      assertNotSame(dfs, dfs2)
+      dfs2.setDigit('i')
+      assertFalse(dfs.equals(dfs2))
+    }
+
+    'test_bad_tag_matches_root_dfs - {
+      val l = Locale.forLanguageTag("no_NO")
+      val dfs = DecimalFormatSymbols.getInstance(l)
+      standardLocalesData.foreach {
+        case (Locale.ROOT, symbols) =>
+          test_dfs(dfs, symbols)
+        case (_, _) =>
+      }
+    }
+
+    // 'test_hash_code - {
+    //   val dfs = new DecimalFormatSymbols()
+    //   assertEquals(dfs.hashCode, dfs.hashCode)
+    //   val dfs2 = new DecimalFormatSymbols()
+    //   assertEquals(dfs.hashCode, dfs2.hashCode)
+    //   dfs2.setExponentSeparator("abc")
+    //   // These tests should fail but they pass on the JVM
+    //   assertEquals(dfs.hashCode, dfs2.hashCode)
+    //   standardLocalesData.filter(_._1 != Locale.ROOT).foreach {
+    //     case (l, symbols) =>
+    //       val df = DecimalFormatSymbols.getInstance(l)
+    //       assertFalse(dfs.hashCode.equals(df.hashCode))
+    //   }
+    // }
   }
 }

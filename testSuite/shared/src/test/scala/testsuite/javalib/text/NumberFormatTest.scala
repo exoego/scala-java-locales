@@ -7,26 +7,25 @@ import java.math.RoundingMode
 import locales.{DecimalFormatUtil, LocaleRegistry}
 import locales.cldr.LDML
 import locales.cldr.data._
-import org.junit.{Before, Ignore, Test}
-import org.junit.Assert._
+import utest._
 import testsuite.utils.{LocaleTestSetup, Platform}
 import testsuite.utils.AssertThrows._
 
-class NumberFormatTest extends LocaleTestSetup {
+final case class TestCase(tag: String,
+                    ldml: LDML,
+                    l: Locale,
+                    cldr21: Boolean,
+                    nf: String,
+                    inf: String,
+                    pf: String)
+
+object NumberFormatTest extends TestSuite with LocaleTestSetup {
   // Clean up the locale database, there are different implementations for
   // the JVM and JS
-  @Before def cleanup: Unit = {
+  override def utestBeforeEach(path: Seq[String]): Unit = {
     super.cleanDatabase
     Locale.setDefault(Locale.US) // For Currency support
   }
-
-  case class TestCase(tag: String,
-                      ldml: LDML,
-                      l: Locale,
-                      cldr21: Boolean,
-                      nf: String,
-                      inf: String,
-                      pf: String)
 
   val stdLocales = List(
     TestCase("und", root, Locale.ROOT, cldr21 = true, "#,##0.###", "#,##0", "#,##0%"),
@@ -101,405 +100,411 @@ class NumberFormatTest extends LocaleTestSetup {
     TestCase("smn-FI", smn_FI, Locale.ROOT, cldr21 = false, "#,##0.###", "#,##0", "#,##0\u00A0%")
   )
 
-  @Test def test_constants(): Unit = {
-    assertEquals(0, NumberFormat.INTEGER_FIELD)
-    assertEquals(1, NumberFormat.FRACTION_FIELD)
-  }
-
-  @Test def test_available_locales(): Unit =
-    assertTrue(NumberFormat.getAvailableLocales.contains(Locale.ENGLISH))
-
-  @Test def test_default_instance(): Unit = {
-    val nf = NumberFormat.getNumberInstance.asInstanceOf[DecimalFormat]
-    assertEquals("#,##0.###", nf.toPattern)
-    assertEquals(DecimalFormatSymbols.getInstance(), nf.getDecimalFormatSymbols)
-
-    val inf = NumberFormat.getIntegerInstance.asInstanceOf[DecimalFormat]
-    assertEquals("#,##0", inf.toPattern)
-    assertEquals(DecimalFormatSymbols.getInstance(), inf.getDecimalFormatSymbols)
-
-    val pf = NumberFormat.getPercentInstance.asInstanceOf[DecimalFormat]
-    assertEquals("#,##0%", pf.toPattern)
-    assertEquals(DecimalFormatSymbols.getInstance(), pf.getDecimalFormatSymbols)
-  }
-
-  @Test def test_default_locales(): Unit =
-    stdLocales.foreach { t: TestCase =>
-      val nf = NumberFormat.getNumberInstance(t.l).asInstanceOf[DecimalFormat]
-      assertEquals(s"nf.toPattern ${t.nf}", t.nf, nf.toPattern)
-      assertFalse("nf.isParseIntegerOnly", nf.isParseIntegerOnly)
-      assertEquals("nf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(t.l),
-                   nf.getDecimalFormatSymbols)
-      assertEquals("nf.getMaximumIntegerDigits", Integer.MAX_VALUE, nf.getMaximumIntegerDigits)
-      assertEquals("nf.getMinimumIntegerDigits", 1, nf.getMinimumIntegerDigits)
-      assertEquals("nf.getMaximumFractionDigits", 3, nf.getMaximumFractionDigits)
-      assertEquals("nf.getMinimumFractionDigits", 0, nf.getMinimumFractionDigits)
-      assertTrue("nf.isGroupingUsed", nf.isGroupingUsed)
-      assertEquals("nf.getRoundingMode", RoundingMode.HALF_EVEN, nf.getRoundingMode)
-      assertEquals("nf.getPositivePrefix", "", nf.getPositivePrefix)
-      assertEquals("nf.getPositiveSuffix", "", nf.getPositiveSuffix)
-      assertEquals("nf.getNegativePrefix",
-                   nf.getDecimalFormatSymbols.getMinusSign.toString,
-                   nf.getNegativePrefix)
-      assertEquals("nf.getNegativeSuffix", "", nf.getNegativeSuffix)
-      assertEquals("nf.getMultiplier", 1, nf.getMultiplier)
-      assertEquals("nf.getGroupingSize", 3, nf.getGroupingSize)
-      assertFalse("nf.isDecimalSeparatorAlwaysShown", nf.isDecimalSeparatorAlwaysShown)
-      assertFalse("nf.isParseBigDecimal", nf.isParseBigDecimal)
-
-      val inf = NumberFormat.getIntegerInstance(t.l).asInstanceOf[DecimalFormat]
-      assertEquals("inf.toPattern", t.inf, inf.toPattern)
-      assertTrue("inf.isParseIntegerOnly", inf.isParseIntegerOnly)
-      assertEquals("inf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(t.l),
-                   inf.getDecimalFormatSymbols)
-      assertEquals("inf.getMaximumIntegerDigits", Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
-      assertEquals("inf.getMinimumIntegerDigits", 1, inf.getMinimumIntegerDigits)
-      assertEquals("inf.getMaximumFractionDigits", 0, inf.getMaximumFractionDigits)
-      assertEquals("inf.getMinimumFractionDigits", 0, inf.getMinimumFractionDigits)
-      assertTrue("inf.isGroupingUsed", inf.isGroupingUsed)
-      assertEquals("inf.getRoundingMode", RoundingMode.HALF_EVEN, inf.getRoundingMode)
-      assertEquals("inf.getPositivePrefix", "", inf.getPositivePrefix)
-      assertEquals("inf.getPositiveSuffix", "", inf.getPositiveSuffix)
-      assertEquals("inf.getNegativePrefix",
-                   inf.getDecimalFormatSymbols.getMinusSign.toString,
-                   inf.getNegativePrefix)
-      assertEquals("inf.getNegativeSuffix", "", inf.getNegativeSuffix)
-      assertEquals("inf.getMultiplier", 1, inf.getMultiplier)
-      assertEquals("inf.getGroupingSize", 3, inf.getGroupingSize)
-      assertFalse("inf.isDecimalSeparatorAlwaysShown", inf.isDecimalSeparatorAlwaysShown)
-      assertFalse("inf.isParseBigDecimal", inf.isParseBigDecimal)
-
-      val pf = NumberFormat.getPercentInstance(t.l).asInstanceOf[DecimalFormat]
-      assertEquals("pf.toPattern", t.pf, pf.toPattern)
-      assertEquals("pf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(t.l),
-                   pf.getDecimalFormatSymbols)
-      assertEquals("pf.getMaximumIntegerDigits", Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
-      assertEquals("pf.getMinimumIntegerDigits", 1, pf.getMinimumIntegerDigits)
-      assertEquals("pf.getMaximumFractionDigits", 0, pf.getMaximumFractionDigits)
-      assertEquals("pf.getMinimumFractionDigits", 0, pf.getMinimumFractionDigits)
-      assertTrue("pf.isGroupingUsed", pf.isGroupingUsed)
-      assertEquals("pf.getRoundingMode", RoundingMode.HALF_EVEN, pf.getRoundingMode)
-      assertEquals("pf.getPositivePrefix", "", pf.getPositivePrefix)
-      assertEquals("pf.getPositiveSuffix",
-                   DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
-                   pf.getPositiveSuffix)
-      assertEquals("pf.getNegativePrefix",
-                   pf.getDecimalFormatSymbols.getMinusSign.toString,
-                   pf.getNegativePrefix)
-      assertEquals("pf.getNegativeSuffix",
-                   DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
-                   pf.getNegativeSuffix)
-      assertEquals("pf.getMultiplier", 100, pf.getMultiplier)
-      assertEquals("pf.getGroupingSize", 3, pf.getGroupingSize)
-      assertFalse("pf.isDecimalSeparatorAlwaysShown", pf.isDecimalSeparatorAlwaysShown)
-      assertFalse("pf.isParseBigDecimal", pf.isParseBigDecimal)
+  val tests = Tests {
+    'test_constants - {
+      assertEquals(0, NumberFormat.INTEGER_FIELD)
+      assertEquals(1, NumberFormat.FRACTION_FIELD)
     }
 
-  @Test def test_extra_locales(): Unit =
-    extraLocales.foreach { t =>
-      if (!Platform.executingInJVM) {
-        LocaleRegistry.installLocale(t.ldml)
+    'test_available_locales - {
+      assertTrue(NumberFormat.getAvailableLocales.contains(Locale.ENGLISH))
+    }
+
+    'test_default_instance - {
+      val nf = NumberFormat.getNumberInstance.asInstanceOf[DecimalFormat]
+      assertEquals("#,##0.###", nf.toPattern)
+      assertEquals(DecimalFormatSymbols.getInstance(), nf.getDecimalFormatSymbols)
+
+      val inf = NumberFormat.getIntegerInstance.asInstanceOf[DecimalFormat]
+      assertEquals("#,##0", inf.toPattern)
+      assertEquals(DecimalFormatSymbols.getInstance(), inf.getDecimalFormatSymbols)
+
+      val pf = NumberFormat.getPercentInstance.asInstanceOf[DecimalFormat]
+      assertEquals("#,##0%", pf.toPattern)
+      assertEquals(DecimalFormatSymbols.getInstance(), pf.getDecimalFormatSymbols)
+    }
+
+    'test_default_locales - {
+      stdLocales.foreach { t: TestCase =>
+        val nf = NumberFormat.getNumberInstance(t.l).asInstanceOf[DecimalFormat]
+        assertEquals(s"nf.toPattern ${t.nf}", t.nf, nf.toPattern)
+        assertFalse("nf.isParseIntegerOnly", nf.isParseIntegerOnly)
+        assertEquals("nf.getDecimalFormatSymbols",
+                     DecimalFormatSymbols.getInstance(t.l),
+                     nf.getDecimalFormatSymbols)
+        assertEquals("nf.getMaximumIntegerDigits", Integer.MAX_VALUE, nf.getMaximumIntegerDigits)
+        assertEquals("nf.getMinimumIntegerDigits", 1, nf.getMinimumIntegerDigits)
+        assertEquals("nf.getMaximumFractionDigits", 3, nf.getMaximumFractionDigits)
+        assertEquals("nf.getMinimumFractionDigits", 0, nf.getMinimumFractionDigits)
+        assertTrue("nf.isGroupingUsed", nf.isGroupingUsed)
+        assertEquals("nf.getRoundingMode", RoundingMode.HALF_EVEN, nf.getRoundingMode)
+        assertEquals("nf.getPositivePrefix", "", nf.getPositivePrefix)
+        assertEquals("nf.getPositiveSuffix", "", nf.getPositiveSuffix)
+        assertEquals("nf.getNegativePrefix",
+                     nf.getDecimalFormatSymbols.getMinusSign.toString,
+                     nf.getNegativePrefix)
+        assertEquals("nf.getNegativeSuffix", "", nf.getNegativeSuffix)
+        assertEquals("nf.getMultiplier", 1, nf.getMultiplier)
+        assertEquals("nf.getGroupingSize", 3, nf.getGroupingSize)
+        assertFalse("nf.isDecimalSeparatorAlwaysShown", nf.isDecimalSeparatorAlwaysShown)
+        assertFalse("nf.isParseBigDecimal", nf.isParseBigDecimal)
+
+        val inf = NumberFormat.getIntegerInstance(t.l).asInstanceOf[DecimalFormat]
+        assertEquals("inf.toPattern", t.inf, inf.toPattern)
+        assertTrue("inf.isParseIntegerOnly", inf.isParseIntegerOnly)
+        assertEquals("inf.getDecimalFormatSymbols",
+                     DecimalFormatSymbols.getInstance(t.l),
+                     inf.getDecimalFormatSymbols)
+        assertEquals("inf.getMaximumIntegerDigits", Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
+        assertEquals("inf.getMinimumIntegerDigits", 1, inf.getMinimumIntegerDigits)
+        assertEquals("inf.getMaximumFractionDigits", 0, inf.getMaximumFractionDigits)
+        assertEquals("inf.getMinimumFractionDigits", 0, inf.getMinimumFractionDigits)
+        assertTrue("inf.isGroupingUsed", inf.isGroupingUsed)
+        assertEquals("inf.getRoundingMode", RoundingMode.HALF_EVEN, inf.getRoundingMode)
+        assertEquals("inf.getPositivePrefix", "", inf.getPositivePrefix)
+        assertEquals("inf.getPositiveSuffix", "", inf.getPositiveSuffix)
+        assertEquals("inf.getNegativePrefix",
+                     inf.getDecimalFormatSymbols.getMinusSign.toString,
+                     inf.getNegativePrefix)
+        assertEquals("inf.getNegativeSuffix", "", inf.getNegativeSuffix)
+        assertEquals("inf.getMultiplier", 1, inf.getMultiplier)
+        assertEquals("inf.getGroupingSize", 3, inf.getGroupingSize)
+        assertFalse("inf.isDecimalSeparatorAlwaysShown", inf.isDecimalSeparatorAlwaysShown)
+        assertFalse("inf.isParseBigDecimal", inf.isParseBigDecimal)
+
+        val pf = NumberFormat.getPercentInstance(t.l).asInstanceOf[DecimalFormat]
+        assertEquals("pf.toPattern", t.pf, pf.toPattern)
+        assertEquals("pf.getDecimalFormatSymbols",
+                     DecimalFormatSymbols.getInstance(t.l),
+                     pf.getDecimalFormatSymbols)
+        assertEquals("pf.getMaximumIntegerDigits", Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
+        assertEquals("pf.getMinimumIntegerDigits", 1, pf.getMinimumIntegerDigits)
+        assertEquals("pf.getMaximumFractionDigits", 0, pf.getMaximumFractionDigits)
+        assertEquals("pf.getMinimumFractionDigits", 0, pf.getMinimumFractionDigits)
+        assertTrue("pf.isGroupingUsed", pf.isGroupingUsed)
+        assertEquals("pf.getRoundingMode", RoundingMode.HALF_EVEN, pf.getRoundingMode)
+        assertEquals("pf.getPositivePrefix", "", pf.getPositivePrefix)
+        assertEquals("pf.getPositiveSuffix",
+                     DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
+                     pf.getPositiveSuffix)
+        assertEquals("pf.getNegativePrefix",
+                     pf.getDecimalFormatSymbols.getMinusSign.toString,
+                     pf.getNegativePrefix)
+        assertEquals("pf.getNegativeSuffix",
+                     DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
+                     pf.getNegativeSuffix)
+        assertEquals("pf.getMultiplier", 100, pf.getMultiplier)
+        assertEquals("pf.getGroupingSize", 3, pf.getGroupingSize)
+        assertFalse("pf.isDecimalSeparatorAlwaysShown", pf.isDecimalSeparatorAlwaysShown)
+        assertFalse("pf.isParseBigDecimal", pf.isParseBigDecimal)
       }
-      val l  = Locale.forLanguageTag(t.tag)
-      val nf = NumberFormat.getNumberInstance(l).asInstanceOf[DecimalFormat]
-      assertEquals("nf.toPattern", t.nf, nf.toPattern)
-      assertFalse("nf.isParseIntegerOnly", nf.isParseIntegerOnly)
-      assertEquals("nf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(l),
-                   nf.getDecimalFormatSymbols)
-      assertEquals("nf.getMaximumIntegerDigits", Integer.MAX_VALUE, nf.getMaximumIntegerDigits)
-      assertEquals("nf.getMinimumIntegerDigits", 1, nf.getMinimumIntegerDigits)
-      assertEquals("nf.getMaximumFractionDigits", 3, nf.getMaximumFractionDigits)
-      assertEquals("nf.getMinimumFractionDigits", 0, nf.getMinimumFractionDigits)
-      assertTrue("nf.isGroupingUsed", nf.isGroupingUsed)
-      assertEquals("nf.getRoundingMode", RoundingMode.HALF_EVEN, nf.getRoundingMode)
-      assertEquals("nf.getPositivePrefix", "", nf.getPositivePrefix)
-      assertEquals("nf.getPositiveSuffix", "", nf.getPositiveSuffix)
-      assertEquals("nf.getNegativePrefix",
-                   nf.getDecimalFormatSymbols.getMinusSign.toString,
-                   nf.getNegativePrefix)
-      assertEquals("nf.getNegativeSuffix", "", nf.getNegativeSuffix)
-      assertEquals("nf.getMultiplier", 1, nf.getMultiplier)
-      assertEquals("nf.getGroupingSize", 3, nf.getGroupingSize)
-      assertFalse("nf.isDecimalSeparatorAlwaysShown", nf.isDecimalSeparatorAlwaysShown)
-      assertFalse("nf.isParseBigDecimal", nf.isParseBigDecimal)
-
-      val inf = NumberFormat.getIntegerInstance(l).asInstanceOf[DecimalFormat]
-      assertEquals("inf.toPattern", t.inf, inf.toPattern)
-      assertTrue("inf.isParseIntegerOnly", inf.isParseIntegerOnly)
-      assertEquals("inf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(l),
-                   inf.getDecimalFormatSymbols)
-      assertEquals("inf.getMaximumIntegerDigits", Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
-      assertEquals("inf.getMinimumIntegerDigits", 1, inf.getMinimumIntegerDigits)
-      assertEquals("inf.getMaximumFractionDigits", 0, inf.getMaximumFractionDigits)
-      assertEquals("inf.getMinimumFractionDigits", 0, inf.getMinimumFractionDigits)
-      assertTrue("inf.isGroupingUsed", inf.isGroupingUsed)
-      assertEquals("inf.getRoundingMode", RoundingMode.HALF_EVEN, inf.getRoundingMode)
-      assertEquals("inf.getPositivePrefix", "", inf.getPositivePrefix)
-      assertEquals("inf.getPositiveSuffix", "", inf.getPositiveSuffix)
-      assertEquals("inf.getNegativePrefix",
-                   inf.getDecimalFormatSymbols.getMinusSign.toString,
-                   inf.getNegativePrefix)
-      assertEquals("inf.getNegativeSuffix", "", inf.getNegativeSuffix)
-      assertEquals("inf.getMultiplier", 1, inf.getMultiplier)
-      assertEquals("inf.getGroupingSize", 3, inf.getGroupingSize)
-      assertFalse("inf.isDecimalSeparatorAlwaysShown", inf.isDecimalSeparatorAlwaysShown)
-      assertFalse("inf.isParseBigDecimal", inf.isParseBigDecimal)
-
-      val pf = NumberFormat.getPercentInstance(l).asInstanceOf[DecimalFormat]
-      assertEquals("pf.toPattern", t.pf, pf.toPattern)
-      assertEquals("pf.getDecimalFormatSymbols",
-                   DecimalFormatSymbols.getInstance(l),
-                   pf.getDecimalFormatSymbols)
-      assertEquals("pf.getMaximumIntegerDigits", Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
-      assertEquals("pf.getMinimumIntegerDigits", 1, pf.getMinimumIntegerDigits)
-      assertEquals("pf.getMaximumFractionDigits", 0, pf.getMaximumFractionDigits)
-      assertEquals("pf.getMinimumFractionDigits", 0, pf.getMinimumFractionDigits)
-      assertTrue("pf.isGroupingUsed", pf.isGroupingUsed)
-      assertEquals("pf.getRoundingMode", RoundingMode.HALF_EVEN, pf.getRoundingMode)
-      assertEquals("pf.getPositivePrefix", "", pf.getPositivePrefix)
-      assertEquals("pf.getPositiveSuffix",
-                   DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
-                   pf.getPositiveSuffix)
-      assertEquals("pf.getNegativePrefix",
-                   pf.getDecimalFormatSymbols.getMinusSign.toString,
-                   pf.getNegativePrefix)
-      assertEquals("pf.getNegativeSuffix",
-                   DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
-                   pf.getNegativeSuffix)
-      assertEquals("pf.getMultiplier", 100, pf.getMultiplier)
-      assertEquals("pf.getGroupingSize", 3, pf.getGroupingSize)
-      assertFalse("pf.isDecimalSeparatorAlwaysShown", pf.isDecimalSeparatorAlwaysShown)
-      assertFalse("pf.isParseBigDecimal", pf.isParseBigDecimal)
     }
 
-  @Test def test_extra_locales_diff(): Unit =
-    extraLocalesDiff
-      .filter(t => (Platform.executingInJVM && t.cldr21) || (!Platform.executingInJVM && !t.cldr21))
-      .foreach { t =>
+    'test_extra_locales - {
+      extraLocales.foreach { t =>
         if (!Platform.executingInJVM) {
           LocaleRegistry.installLocale(t.ldml)
         }
         val l  = Locale.forLanguageTag(t.tag)
         val nf = NumberFormat.getNumberInstance(l).asInstanceOf[DecimalFormat]
-        assertEquals(s"nf.toPattern(${t.nf})", t.nf, nf.toPattern)
+        assertEquals("nf.toPattern", t.nf, nf.toPattern)
         assertFalse("nf.isParseIntegerOnly", nf.isParseIntegerOnly)
         assertEquals("nf.getDecimalFormatSymbols",
                      DecimalFormatSymbols.getInstance(l),
                      nf.getDecimalFormatSymbols)
         assertEquals("nf.getMaximumIntegerDigits", Integer.MAX_VALUE, nf.getMaximumIntegerDigits)
         assertEquals("nf.getMinimumIntegerDigits", 1, nf.getMinimumIntegerDigits)
-        assertEquals(3, nf.getMaximumFractionDigits)
-        assertEquals(0, nf.getMinimumFractionDigits)
+        assertEquals("nf.getMaximumFractionDigits", 3, nf.getMaximumFractionDigits)
+        assertEquals("nf.getMinimumFractionDigits", 0, nf.getMinimumFractionDigits)
         assertTrue("nf.isGroupingUsed", nf.isGroupingUsed)
         assertEquals("nf.getRoundingMode", RoundingMode.HALF_EVEN, nf.getRoundingMode)
         assertEquals("nf.getPositivePrefix", "", nf.getPositivePrefix)
         assertEquals("nf.getPositiveSuffix", "", nf.getPositiveSuffix)
-        assertTrue(
-          "hodge bodge minus sign",
-          nf.getDecimalFormatSymbols.getMinusSign.toString == nf.getNegativePrefix ||
-            nf.getDecimalFormatSymbols.getMinusSign.toString == nf.getNegativeSuffix
-        )
+        assertEquals("nf.getNegativePrefix",
+                     nf.getDecimalFormatSymbols.getMinusSign.toString,
+                     nf.getNegativePrefix)
+        assertEquals("nf.getNegativeSuffix", "", nf.getNegativeSuffix)
         assertEquals("nf.getMultiplier", 1, nf.getMultiplier)
         assertEquals("nf.getGroupingSize", 3, nf.getGroupingSize)
         assertFalse("nf.isDecimalSeparatorAlwaysShown", nf.isDecimalSeparatorAlwaysShown)
         assertFalse("nf.isParseBigDecimal", nf.isParseBigDecimal)
 
         val inf = NumberFormat.getIntegerInstance(l).asInstanceOf[DecimalFormat]
-        assertEquals(t.inf, inf.toPattern)
-        assertTrue(inf.isParseIntegerOnly)
-        assertEquals(DecimalFormatSymbols.getInstance(l), inf.getDecimalFormatSymbols)
-        assertEquals(Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
-        assertEquals(1, inf.getMinimumIntegerDigits)
-        assertEquals(0, inf.getMaximumFractionDigits)
-        assertEquals(0, inf.getMinimumFractionDigits)
-        assertTrue(inf.isGroupingUsed)
-        assertEquals(RoundingMode.HALF_EVEN, inf.getRoundingMode)
-        assertEquals("", inf.getPositivePrefix)
-        assertEquals("", inf.getPositiveSuffix)
-        assertTrue(
-          inf.getDecimalFormatSymbols.getMinusSign.toString == inf.getNegativePrefix ||
-            inf.getDecimalFormatSymbols.getMinusSign.toString == inf.getNegativeSuffix)
-        assertEquals(1, inf.getMultiplier)
-        assertEquals(3, inf.getGroupingSize)
-        assertFalse(inf.isDecimalSeparatorAlwaysShown)
-        assertFalse(inf.isParseBigDecimal)
+        assertEquals("inf.toPattern", t.inf, inf.toPattern)
+        assertTrue("inf.isParseIntegerOnly", inf.isParseIntegerOnly)
+        assertEquals("inf.getDecimalFormatSymbols",
+                     DecimalFormatSymbols.getInstance(l),
+                     inf.getDecimalFormatSymbols)
+        assertEquals("inf.getMaximumIntegerDigits", Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
+        assertEquals("inf.getMinimumIntegerDigits", 1, inf.getMinimumIntegerDigits)
+        assertEquals("inf.getMaximumFractionDigits", 0, inf.getMaximumFractionDigits)
+        assertEquals("inf.getMinimumFractionDigits", 0, inf.getMinimumFractionDigits)
+        assertTrue("inf.isGroupingUsed", inf.isGroupingUsed)
+        assertEquals("inf.getRoundingMode", RoundingMode.HALF_EVEN, inf.getRoundingMode)
+        assertEquals("inf.getPositivePrefix", "", inf.getPositivePrefix)
+        assertEquals("inf.getPositiveSuffix", "", inf.getPositiveSuffix)
+        assertEquals("inf.getNegativePrefix",
+                     inf.getDecimalFormatSymbols.getMinusSign.toString,
+                     inf.getNegativePrefix)
+        assertEquals("inf.getNegativeSuffix", "", inf.getNegativeSuffix)
+        assertEquals("inf.getMultiplier", 1, inf.getMultiplier)
+        assertEquals("inf.getGroupingSize", 3, inf.getGroupingSize)
+        assertFalse("inf.isDecimalSeparatorAlwaysShown", inf.isDecimalSeparatorAlwaysShown)
+        assertFalse("inf.isParseBigDecimal", inf.isParseBigDecimal)
 
         val pf = NumberFormat.getPercentInstance(l).asInstanceOf[DecimalFormat]
-        assertEquals(t.pf, pf.toPattern)
-        assertEquals(DecimalFormatSymbols.getInstance(l), pf.getDecimalFormatSymbols)
-        assertEquals(Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
-        assertEquals(1, pf.getMinimumIntegerDigits)
-        assertEquals(0, pf.getMaximumFractionDigits)
-        assertEquals(0, pf.getMinimumFractionDigits)
-        assertTrue(pf.isGroupingUsed)
-        assertEquals(RoundingMode.HALF_EVEN, pf.getRoundingMode)
-        assertEquals("", pf.getPositivePrefix)
-        assertEquals(DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
+        assertEquals("pf.toPattern", t.pf, pf.toPattern)
+        assertEquals("pf.getDecimalFormatSymbols",
+                     DecimalFormatSymbols.getInstance(l),
+                     pf.getDecimalFormatSymbols)
+        assertEquals("pf.getMaximumIntegerDigits", Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
+        assertEquals("pf.getMinimumIntegerDigits", 1, pf.getMinimumIntegerDigits)
+        assertEquals("pf.getMaximumFractionDigits", 0, pf.getMaximumFractionDigits)
+        assertEquals("pf.getMinimumFractionDigits", 0, pf.getMinimumFractionDigits)
+        assertTrue("pf.isGroupingUsed", pf.isGroupingUsed)
+        assertEquals("pf.getRoundingMode", RoundingMode.HALF_EVEN, pf.getRoundingMode)
+        assertEquals("pf.getPositivePrefix", "", pf.getPositivePrefix)
+        assertEquals("pf.getPositiveSuffix",
+                     DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
                      pf.getPositiveSuffix)
-        assertTrue(
-          pf.getDecimalFormatSymbols.getMinusSign.toString == pf.getNegativePrefix ||
-            pf.getDecimalFormatSymbols.getMinusSign.toString == pf.getNegativeSuffix)
-        assertEquals(100, pf.getMultiplier)
-        assertEquals(3, pf.getGroupingSize)
-        assertFalse(pf.isDecimalSeparatorAlwaysShown)
-        assertFalse(pf.isParseBigDecimal)
+        assertEquals("pf.getNegativePrefix",
+                     pf.getDecimalFormatSymbols.getMinusSign.toString,
+                     pf.getNegativePrefix)
+        assertEquals("pf.getNegativeSuffix",
+                     DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
+                     pf.getNegativeSuffix)
+        assertEquals("pf.getMultiplier", 100, pf.getMultiplier)
+        assertEquals("pf.getGroupingSize", 3, pf.getGroupingSize)
+        assertFalse("pf.isDecimalSeparatorAlwaysShown", pf.isDecimalSeparatorAlwaysShown)
+        assertFalse("pf.isParseBigDecimal", pf.isParseBigDecimal)
       }
-
-  @Test def test_format_not_allowed(): Unit = {
-    val nf = NumberFormat.getNumberInstance
-    expectThrows(classOf[IllegalArgumentException], nf.format("Abc"))
-  }
-
-  @Test def test_format_integer(): Unit = {
-    val nf = NumberFormat.getIntegerInstance
-    assertEquals("123", nf.format(123))
-    assertEquals("0", nf.format(0))
-    assertEquals("-123", nf.format(-123))
-    assertEquals("1,000", nf.format(1000))
-    assertEquals("100,000", nf.format(100000))
-    assertEquals("10,000,000", nf.format(10000000))
-    assertEquals("2,147,483,647", nf.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807", nf.format(Long.MaxValue))
-    assertEquals("-1,000", nf.format(-1000))
-    assertEquals("-100,000", nf.format(-100000))
-    assertEquals("-10,000,000", nf.format(-10000000))
-    assertEquals("-2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808", nf.format(Long.MinValue))
-  }
-
-  @Test def test_format_grouping(): Unit = {
-    val nf = NumberFormat.getIntegerInstance
-    nf.setGroupingUsed(false)
-    assertEquals("123", nf.format(123))
-    assertEquals("0", nf.format(0))
-    assertEquals("-123", nf.format(-123))
-    assertEquals("1000", nf.format(1000))
-    assertEquals("100000", nf.format(100000))
-    assertEquals("10000000", nf.format(10000000))
-    assertEquals("2147483647", nf.format(Int.MaxValue))
-    assertEquals("9223372036854775807", nf.format(Long.MaxValue))
-    assertEquals("-1000", nf.format(-1000))
-    assertEquals("-100000", nf.format(-100000))
-    assertEquals("-10000000", nf.format(-10000000))
-    assertEquals("-2147483648", nf.format(Int.MinValue))
-    assertEquals("-9223372036854775808", nf.format(Long.MinValue))
-  }
-
-  @Test def test_format_max_digits_count(): Unit = {
-    val nf = NumberFormat.getIntegerInstance
-    nf.setMaximumIntegerDigits(0)
-    assertEquals("123", "0", nf.format(123))
-    assertEquals("0", "0", nf.format(0))
-    assertEquals("-123", "-0", nf.format(-123))
-    assertEquals("1000", "0", nf.format(1000))
-    assertEquals("100000", "0", nf.format(100000))
-    assertEquals("10000000", "0", nf.format(10000000))
-    assertEquals(s"${Int.MaxValue}", "0", nf.format(Int.MaxValue))
-    assertEquals(s"${Long.MaxValue}", "0", nf.format(Long.MaxValue))
-    assertEquals("-1000", "-0", nf.format(-1000))
-    assertEquals("-100000", "-0", nf.format(-100000))
-    assertEquals("-10000000", "-0", nf.format(-10000000))
-    assertEquals(s"${Int.MinValue}", "-0", nf.format(Int.MinValue))
-    assertEquals(s"${Long.MinValue}", "-0", nf.format(Long.MinValue))
-
-    nf.setMaximumIntegerDigits(5)
-    assertEquals("123-5", "123", nf.format(123))
-    assertEquals("0-5", "0", nf.format(0))
-    assertEquals("-123-5", "-123", nf.format(-123))
-    assertEquals("1000-5", "1,000", nf.format(1000))
-    assertEquals("100000-5", "00,000", nf.format(100000))
-    assertEquals("10000000-5", "00,000", nf.format(10000000))
-    assertEquals(s"${Int.MaxValue}-5", "83,647", nf.format(Int.MaxValue))
-    assertEquals(s"${Long.MaxValue}-5", "75,807", nf.format(Long.MaxValue))
-    assertEquals("-1000-5", "-1,000", nf.format(-1000))
-    assertEquals("-100000-5", "-00,000", nf.format(-100000))
-    assertEquals("-10000000-5", "-00,000", nf.format(-10000000))
-    assertEquals(s"${Int.MinValue}-5", "-83,648", nf.format(Int.MinValue))
-    assertEquals(s"${Long.MinValue}-5", "-75,808", nf.format(Long.MinValue))
-  }
-
-  @Test def test_format_min_digits_count(): Unit = {
-    val nf = NumberFormat.getIntegerInstance
-    nf.setMinimumIntegerDigits(0)
-    assertEquals("123", "123", nf.format(123))
-    assertEquals("0", "0", nf.format(0))
-    assertEquals("-123", "-123", nf.format(-123))
-    assertEquals("1,000", "1,000", nf.format(1000))
-    assertEquals("100,000", "100,000", nf.format(100000))
-    assertEquals("10,000,000", "10,000,000", nf.format(10000000))
-    assertEquals("2,147,483,647", "2,147,483,647", nf.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807", "9,223,372,036,854,775,807", nf.format(Long.MaxValue))
-    assertEquals("-1,000", "-1,000", nf.format(-1000))
-    assertEquals("-100,000", "-100,000", nf.format(-100000))
-    assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
-    assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808",
-                 "-9,223,372,036,854,775,808",
-                 nf.format(Long.MinValue))
-
-    nf.setMinimumIntegerDigits(5)
-    assertEquals("00,123", "00,123", nf.format(123))
-    assertEquals("00,000", "00,000", nf.format(0))
-    assertEquals("-00,123", "-00,123", nf.format(-123))
-    assertEquals("01,000", "01,000", nf.format(1000))
-    assertEquals("100,000", "100,000", nf.format(100000))
-    assertEquals("10,000,000", "10,000,000", nf.format(10000000))
-    assertEquals("2,147,483,647", "2,147,483,647", nf.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807", "9,223,372,036,854,775,807", nf.format(Long.MaxValue))
-    assertEquals("-01,000", "-01,000", nf.format(-1000))
-    assertEquals("-100,000", "-100,000", nf.format(-100000))
-    assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
-    assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
-    assertEquals("-9,223,372,036,854,775,808",
-                 "-9,223,372,036,854,775,808",
-                 nf.format(Long.MinValue))
-  }
-
-  @Test def test_format_locales_different_group(): Unit = {
-    val nf = NumberFormat.getIntegerInstance(Locale.CANADA_FRENCH)
-    // Different group separator
-    assertEquals("123", nf.format(123))
-    assertEquals("0", nf.format(0))
-    assertEquals("-123", nf.format(-123))
-    assertEquals("1\u00A0000", nf.format(1000))
-    assertEquals("100\u00A0000", nf.format(100000))
-    assertEquals("10\u00A0000\u00A0000", nf.format(10000000))
-    assertEquals("2\u00A0147\u00A0483\u00A0647", nf.format(Int.MaxValue))
-    assertEquals("9\u00A0223\u00A0372\u00A0036\u00A0854\u00A0775\u00A0807",
-                 nf.format(Long.MaxValue))
-    assertEquals("-1\u00A0000", nf.format(-1000))
-    assertEquals("-100\u00A0000", nf.format(-100000))
-    assertEquals("-10\u00A0000\u00A0000", nf.format(-10000000))
-    assertEquals("-2\u00A0147\u00A0483\u00A0648", nf.format(Int.MinValue))
-    assertEquals("-9\u00A0223\u00A0372\u00A0036\u00A0854\u00A0775\u00A0808",
-                 nf.format(Long.MinValue))
-  }
-
-  @Test def test_format_locales_different_negative(): Unit = {
-    if (!Platform.executingInJVM) {
-      LocaleRegistry.installLocale(lt)
     }
-    val nf =
-      NumberFormat.getIntegerInstance(Locale.forLanguageTag("lt")).asInstanceOf[DecimalFormat]
-    nf.getDecimalFormatSymbols.setGroupingSeparator(',')
-    // Different negative sign
-    assertEquals("123", nf.format(123))
-    assertEquals("0", nf.format(0))
-    assertEquals("\u2212123", nf.format(-123))
-    assertEquals("1,000", nf.format(1000))
-    assertEquals("100,000", nf.format(100000))
-    assertEquals("10,000,000", nf.format(10000000))
-    assertEquals("2,147,483,647", nf.format(Int.MaxValue))
-    assertEquals("9,223,372,036,854,775,807", nf.format(Long.MaxValue))
-    assertEquals("\u22121,000", nf.format(-1000))
-    assertEquals("\u2212100,000", nf.format(-100000))
-    assertEquals("\u221210,000,000", nf.format(-10000000))
-    assertEquals("\u22122,147,483,648", nf.format(Int.MinValue))
-    assertEquals("\u22129,223,372,036,854,775,808", nf.format(Long.MinValue))
+
+    'test_extra_locales_diff - {
+      extraLocalesDiff
+        .filter(t => (Platform.executingInJVM && t.cldr21) || (!Platform.executingInJVM && !t.cldr21))
+        .foreach { t =>
+          if (!Platform.executingInJVM) {
+            LocaleRegistry.installLocale(t.ldml)
+          }
+          val l  = Locale.forLanguageTag(t.tag)
+          val nf = NumberFormat.getNumberInstance(l).asInstanceOf[DecimalFormat]
+          assertEquals(s"nf.toPattern(${t.nf})", t.nf, nf.toPattern)
+          assertFalse("nf.isParseIntegerOnly", nf.isParseIntegerOnly)
+          assertEquals("nf.getDecimalFormatSymbols",
+                       DecimalFormatSymbols.getInstance(l),
+                       nf.getDecimalFormatSymbols)
+          assertEquals("nf.getMaximumIntegerDigits", Integer.MAX_VALUE, nf.getMaximumIntegerDigits)
+          assertEquals("nf.getMinimumIntegerDigits", 1, nf.getMinimumIntegerDigits)
+          assertEquals(3, nf.getMaximumFractionDigits)
+          assertEquals(0, nf.getMinimumFractionDigits)
+          assertTrue("nf.isGroupingUsed", nf.isGroupingUsed)
+          assertEquals("nf.getRoundingMode", RoundingMode.HALF_EVEN, nf.getRoundingMode)
+          assertEquals("nf.getPositivePrefix", "", nf.getPositivePrefix)
+          assertEquals("nf.getPositiveSuffix", "", nf.getPositiveSuffix)
+          assertTrue(
+            "hodge bodge minus sign",
+            nf.getDecimalFormatSymbols.getMinusSign.toString == nf.getNegativePrefix ||
+              nf.getDecimalFormatSymbols.getMinusSign.toString == nf.getNegativeSuffix
+          )
+          assertEquals("nf.getMultiplier", 1, nf.getMultiplier)
+          assertEquals("nf.getGroupingSize", 3, nf.getGroupingSize)
+          assertFalse("nf.isDecimalSeparatorAlwaysShown", nf.isDecimalSeparatorAlwaysShown)
+          assertFalse("nf.isParseBigDecimal", nf.isParseBigDecimal)
+
+          val inf = NumberFormat.getIntegerInstance(l).asInstanceOf[DecimalFormat]
+          assertEquals(t.inf, inf.toPattern)
+          assertTrue(inf.isParseIntegerOnly)
+          assertEquals(DecimalFormatSymbols.getInstance(l), inf.getDecimalFormatSymbols)
+          assertEquals(Integer.MAX_VALUE, inf.getMaximumIntegerDigits)
+          assertEquals(1, inf.getMinimumIntegerDigits)
+          assertEquals(0, inf.getMaximumFractionDigits)
+          assertEquals(0, inf.getMinimumFractionDigits)
+          assertTrue(inf.isGroupingUsed)
+          assertEquals(RoundingMode.HALF_EVEN, inf.getRoundingMode)
+          assertEquals("", inf.getPositivePrefix)
+          assertEquals("", inf.getPositiveSuffix)
+          assertTrue(
+            inf.getDecimalFormatSymbols.getMinusSign.toString == inf.getNegativePrefix ||
+              inf.getDecimalFormatSymbols.getMinusSign.toString == inf.getNegativeSuffix)
+          assertEquals(1, inf.getMultiplier)
+          assertEquals(3, inf.getGroupingSize)
+          assertFalse(inf.isDecimalSeparatorAlwaysShown)
+          assertFalse(inf.isParseBigDecimal)
+
+          val pf = NumberFormat.getPercentInstance(l).asInstanceOf[DecimalFormat]
+          assertEquals(t.pf, pf.toPattern)
+          assertEquals(DecimalFormatSymbols.getInstance(l), pf.getDecimalFormatSymbols)
+          assertEquals(Integer.MAX_VALUE, pf.getMaximumIntegerDigits)
+          assertEquals(1, pf.getMinimumIntegerDigits)
+          assertEquals(0, pf.getMaximumFractionDigits)
+          assertEquals(0, pf.getMinimumFractionDigits)
+          assertTrue(pf.isGroupingUsed)
+          assertEquals(RoundingMode.HALF_EVEN, pf.getRoundingMode)
+          assertEquals("", pf.getPositivePrefix)
+          assertEquals(DecimalFormatUtil.suffixFor(pf, DecimalFormatUtil.PatternCharPercent),
+                       pf.getPositiveSuffix)
+          assertTrue(
+            pf.getDecimalFormatSymbols.getMinusSign.toString == pf.getNegativePrefix ||
+              pf.getDecimalFormatSymbols.getMinusSign.toString == pf.getNegativeSuffix)
+          assertEquals(100, pf.getMultiplier)
+          assertEquals(3, pf.getGroupingSize)
+          assertFalse(pf.isDecimalSeparatorAlwaysShown)
+          assertFalse(pf.isParseBigDecimal)
+        }
+    }
+
+    'test_format_not_allowed - {
+      val nf = NumberFormat.getNumberInstance
+      expectThrows(classOf[IllegalArgumentException], nf.format("Abc"))
+    }
+
+    'test_format_integer - {
+      val nf = NumberFormat.getIntegerInstance
+      assertEquals("123", nf.format(123))
+      assertEquals("0", nf.format(0))
+      assertEquals("-123", nf.format(-123))
+      assertEquals("1,000", nf.format(1000))
+      assertEquals("100,000", nf.format(100000))
+      assertEquals("10,000,000", nf.format(10000000))
+      assertEquals("2,147,483,647", nf.format(Int.MaxValue))
+      assertEquals("9,223,372,036,854,775,807", nf.format(Long.MaxValue))
+      assertEquals("-1,000", nf.format(-1000))
+      assertEquals("-100,000", nf.format(-100000))
+      assertEquals("-10,000,000", nf.format(-10000000))
+      assertEquals("-2,147,483,648", nf.format(Int.MinValue))
+      assertEquals("-9,223,372,036,854,775,808", nf.format(Long.MinValue))
+    }
+
+    'test_format_grouping - {
+      val nf = NumberFormat.getIntegerInstance
+      nf.setGroupingUsed(false)
+      assertEquals("123", nf.format(123))
+      assertEquals("0", nf.format(0))
+      assertEquals("-123", nf.format(-123))
+      assertEquals("1000", nf.format(1000))
+      assertEquals("100000", nf.format(100000))
+      assertEquals("10000000", nf.format(10000000))
+      assertEquals("2147483647", nf.format(Int.MaxValue))
+      assertEquals("9223372036854775807", nf.format(Long.MaxValue))
+      assertEquals("-1000", nf.format(-1000))
+      assertEquals("-100000", nf.format(-100000))
+      assertEquals("-10000000", nf.format(-10000000))
+      assertEquals("-2147483648", nf.format(Int.MinValue))
+      assertEquals("-9223372036854775808", nf.format(Long.MinValue))
+    }
+
+    'test_format_max_digits_count - {
+      val nf = NumberFormat.getIntegerInstance
+      nf.setMaximumIntegerDigits(0)
+      assertEquals("123", "0", nf.format(123))
+      assertEquals("0", "0", nf.format(0))
+      assertEquals("-123", "-0", nf.format(-123))
+      assertEquals("1000", "0", nf.format(1000))
+      assertEquals("100000", "0", nf.format(100000))
+      assertEquals("10000000", "0", nf.format(10000000))
+      assertEquals(s"${Int.MaxValue}", "0", nf.format(Int.MaxValue))
+      assertEquals(s"${Long.MaxValue}", "0", nf.format(Long.MaxValue))
+      assertEquals("-1000", "-0", nf.format(-1000))
+      assertEquals("-100000", "-0", nf.format(-100000))
+      assertEquals("-10000000", "-0", nf.format(-10000000))
+      assertEquals(s"${Int.MinValue}", "-0", nf.format(Int.MinValue))
+      assertEquals(s"${Long.MinValue}", "-0", nf.format(Long.MinValue))
+
+      nf.setMaximumIntegerDigits(5)
+      assertEquals("123-5", "123", nf.format(123))
+      assertEquals("0-5", "0", nf.format(0))
+      assertEquals("-123-5", "-123", nf.format(-123))
+      assertEquals("1000-5", "1,000", nf.format(1000))
+      assertEquals("100000-5", "00,000", nf.format(100000))
+      assertEquals("10000000-5", "00,000", nf.format(10000000))
+      assertEquals(s"${Int.MaxValue}-5", "83,647", nf.format(Int.MaxValue))
+      assertEquals(s"${Long.MaxValue}-5", "75,807", nf.format(Long.MaxValue))
+      assertEquals("-1000-5", "-1,000", nf.format(-1000))
+      assertEquals("-100000-5", "-00,000", nf.format(-100000))
+      assertEquals("-10000000-5", "-00,000", nf.format(-10000000))
+      assertEquals(s"${Int.MinValue}-5", "-83,648", nf.format(Int.MinValue))
+      assertEquals(s"${Long.MinValue}-5", "-75,808", nf.format(Long.MinValue))
+    }
+
+    'test_format_min_digits_count - {
+      val nf = NumberFormat.getIntegerInstance
+      nf.setMinimumIntegerDigits(0)
+      assertEquals("123", "123", nf.format(123))
+      assertEquals("0", "0", nf.format(0))
+      assertEquals("-123", "-123", nf.format(-123))
+      assertEquals("1,000", "1,000", nf.format(1000))
+      assertEquals("100,000", "100,000", nf.format(100000))
+      assertEquals("10,000,000", "10,000,000", nf.format(10000000))
+      assertEquals("2,147,483,647", "2,147,483,647", nf.format(Int.MaxValue))
+      assertEquals("9,223,372,036,854,775,807", "9,223,372,036,854,775,807", nf.format(Long.MaxValue))
+      assertEquals("-1,000", "-1,000", nf.format(-1000))
+      assertEquals("-100,000", "-100,000", nf.format(-100000))
+      assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
+      assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
+      assertEquals("-9,223,372,036,854,775,808",
+                   "-9,223,372,036,854,775,808",
+                   nf.format(Long.MinValue))
+
+      nf.setMinimumIntegerDigits(5)
+      assertEquals("00,123", "00,123", nf.format(123))
+      assertEquals("00,000", "00,000", nf.format(0))
+      assertEquals("-00,123", "-00,123", nf.format(-123))
+      assertEquals("01,000", "01,000", nf.format(1000))
+      assertEquals("100,000", "100,000", nf.format(100000))
+      assertEquals("10,000,000", "10,000,000", nf.format(10000000))
+      assertEquals("2,147,483,647", "2,147,483,647", nf.format(Int.MaxValue))
+      assertEquals("9,223,372,036,854,775,807", "9,223,372,036,854,775,807", nf.format(Long.MaxValue))
+      assertEquals("-01,000", "-01,000", nf.format(-1000))
+      assertEquals("-100,000", "-100,000", nf.format(-100000))
+      assertEquals("-10,000,000", "-10,000,000", nf.format(-10000000))
+      assertEquals("-2,147,483,648", "-2,147,483,648", nf.format(Int.MinValue))
+      assertEquals("-9,223,372,036,854,775,808",
+                   "-9,223,372,036,854,775,808",
+                   nf.format(Long.MinValue))
+    }
+
+    'test_format_locales_different_group - {
+      val nf = NumberFormat.getIntegerInstance(Locale.CANADA_FRENCH)
+      // Different group separator
+      assertEquals("123", nf.format(123))
+      assertEquals("0", nf.format(0))
+      assertEquals("-123", nf.format(-123))
+      assertEquals("1\u00A0000", nf.format(1000))
+      assertEquals("100\u00A0000", nf.format(100000))
+      assertEquals("10\u00A0000\u00A0000", nf.format(10000000))
+      assertEquals("2\u00A0147\u00A0483\u00A0647", nf.format(Int.MaxValue))
+      assertEquals("9\u00A0223\u00A0372\u00A0036\u00A0854\u00A0775\u00A0807",
+                   nf.format(Long.MaxValue))
+      assertEquals("-1\u00A0000", nf.format(-1000))
+      assertEquals("-100\u00A0000", nf.format(-100000))
+      assertEquals("-10\u00A0000\u00A0000", nf.format(-10000000))
+      assertEquals("-2\u00A0147\u00A0483\u00A0648", nf.format(Int.MinValue))
+      assertEquals("-9\u00A0223\u00A0372\u00A0036\u00A0854\u00A0775\u00A0808",
+                   nf.format(Long.MinValue))
+    }
+
+    'test_format_locales_different_negative - {
+      if (!Platform.executingInJVM) {
+        LocaleRegistry.installLocale(lt)
+      }
+      val nf =
+        NumberFormat.getIntegerInstance(Locale.forLanguageTag("lt")).asInstanceOf[DecimalFormat]
+      nf.getDecimalFormatSymbols.setGroupingSeparator(',')
+      // Different negative sign
+      assertEquals("123", nf.format(123))
+      assertEquals("0", nf.format(0))
+      assertEquals("\u2212123", nf.format(-123))
+      assertEquals("1,000", nf.format(1000))
+      assertEquals("100,000", nf.format(100000))
+      assertEquals("10,000,000", nf.format(10000000))
+      assertEquals("2,147,483,647", nf.format(Int.MaxValue))
+      assertEquals("9,223,372,036,854,775,807", nf.format(Long.MaxValue))
+      assertEquals("\u22121,000", nf.format(-1000))
+      assertEquals("\u2212100,000", nf.format(-100000))
+      assertEquals("\u221210,000,000", nf.format(-10000000))
+      assertEquals("\u22122,147,483,648", nf.format(Int.MinValue))
+      assertEquals("\u22129,223,372,036,854,775,808", nf.format(Long.MinValue))
+    }
   }
 }

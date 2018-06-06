@@ -3,13 +3,13 @@ package testsuite.javalib.text
 import java.util.Date
 import java.text.SimpleDateFormat
 
-import org.junit.Assert._
-import org.junit.Test
+import utest._
 
 import io.github.cquiroz.utils.JVMDate
+import testsuite.utils.LocaleTestSetup
 import scala.language.reflectiveCalls
 
-class SimpleDateFormatTest {
+object SimpleDateFormatTest extends TestSuite with LocaleTestSetup {
   final val time = 1491381282242L
   val date = new Date(time)
   val jvmDate = JVMDate.get(time)
@@ -33,44 +33,46 @@ class SimpleDateFormatTest {
     else s.reverse.padTo(size, '0').reverse
   }
 
-  @Test def test_year_format(): Unit = {
-    val f = new SimpleDateFormat("yyyy")
-    assertEquals(year, f.format(date))
-  }
+  val tests = Tests {
+    'test_year_format - {
+      val f = new SimpleDateFormat("yyyy")
+      assertEquals(year, f.format(date))
+    }
 
-  @Test def test_month_format(): Unit = {
-    val f = new SimpleDateFormat("MM")
-    assertEquals(month, f.format(date))
-  }
+    'test_month_format - {
+      val f = new SimpleDateFormat("MM")
+      assertEquals(month, f.format(date))
+    }
 
-  @Test def test_day_format(): Unit = {
-    val f = new SimpleDateFormat("dd")
-    assertEquals(day, f.format(date))
-  }
+    'test_day_format - {
+      val f = new SimpleDateFormat("dd")
+      assertEquals(day, f.format(date))
+    }
 
-  @Test def test_hour_format(): Unit = {
-    val f = new SimpleDateFormat("HH")
-    assertEquals(hours, f.format(date))
-  }
+    'test_hour_format - {
+      val f = new SimpleDateFormat("HH")
+      assertEquals(hours, f.format(date))
+    }
 
-  @Test def test_minutes_format(): Unit = {
-    val f = new SimpleDateFormat("mm")
-    assertEquals(minutes, f.format(date))
-  }
+    'test_minutes_format - {
+      val f = new SimpleDateFormat("mm")
+      assertEquals(minutes, f.format(date))
+    }
 
-  @Test def test_seconds_format(): Unit = {
-    val f = new SimpleDateFormat("ss")
-    assertEquals(seconds, f.format(date))
-  }
+    'test_seconds_format - {
+      val f = new SimpleDateFormat("ss")
+      assertEquals(seconds, f.format(date))
+    }
 
-  @Test def test_millis_format(): Unit = {
-    val f = new SimpleDateFormat("SSS")
-    assertEquals(millis, f.format(date))
-  }
+    'test_millis_format - {
+      val f = new SimpleDateFormat("SSS")
+      assertEquals(millis, f.format(date))
+    }
 
-  @Test def test_full_date_format(): Unit = {
-    val f = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS")
-    assertEquals(s"$day/$month/$year $hours:$minutes:$seconds:$millis",
-      f.format(date))
+    'test_full_date_format - {
+      val f = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS")
+      assertEquals(s"$day/$month/$year $hours:$minutes:$seconds:$millis",
+        f.format(date))
+    }
   }
 }

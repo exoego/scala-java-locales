@@ -94,28 +94,15 @@ lazy val scalajs_locales: Project = project.in(file("."))
   // don't include scala-native by default
   .aggregate(coreJS, coreJVM, testSuiteJS, testSuiteJVM)
 
-lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform).
-  crossType(CrossType.Pure).
-  settings(commonSettings: _*).
-  settings(
+lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
+  .crossType(CrossType.Pure)
+  .settings(commonSettings: _*)
+  .settings(
     name := "scala-java-locales",
-    downloadFromZip := {
-      val xmlFiles = (resourceDirectory in Compile).value / "core"
-      if (java.nio.file.Files.notExists(xmlFiles.toPath)) {
-        println(s"CLDR files missing, downloading version ${cldrVersion.value} ...")
-        IO.unzipURL(
-          new URL(s"http://unicode.org/Public/cldr/${cldrVersion.value}/core.zip"),
-          xmlFiles)
-      } else {
-        println("CLDR files already available")
-      }
-    },
-    compile in Compile := (compile in Compile).dependsOn(downloadFromZip).value,
-    sourceGenerators in Compile += Def.task {
-      generateLocaleData((sourceManaged in Compile).value,
-        (resourceDirectory in Compile).value / "core")
-    }.taskValue
   )
+  .jvmConfigure(_.enablePlugins(LocalesPlugin))
+  .jsConfigure(_.enablePlugins(LocalesPlugin))
+  .nativeConfigure(_.enablePlugins(LocalesPlugin))
 
 lazy val coreJS: Project = core.js
   .settings(
@@ -143,32 +130,27 @@ lazy val testSuite = crossProject(JVMPlatform, JSPlatform, NativePlatform).
     publish := {},
     publishLocal := {},
     publishArtifact := false,
-    testOptions +=
-      Tests.Argument(TestFramework("com.novocode.junit.JUnitFramework"),
-        "-v", "-a")
+    libraryDependencies += "com.lihaoyi" %%% "utest" % "0.6.4" % "test",
+    testFrameworks += new TestFramework("utest.runner.Framework")
   ).
   jsSettings(
     parallelExecution in Test := false,
-    name := "scala-java-locales testSuite on JS",
-    libraryDependencies ++= Seq(
-      "com.novocode" % "junit-interface" % "0.11" % "test",
-      "io.github.cquiroz" %% "macroutils" % "0.0.1" % "provided"
-    )
+    name := "scala-java-locales testSuite on JS"
   ).
-  jsConfigure(_.dependsOn(coreJS, macroUtils)).
-  jsConfigure(_.enablePlugins(ScalaJSJUnitPlugin)).
+  nativeSettings(
+    parallelExecution in Test := false,
+    name := "scala-java-locales testSuite on ScalaNative",
+  ).
   jvmSettings(
     // Fork the JVM test to ensure that the custom flags are set
     fork in Test := true,
     // Use CLDR provider for locales
     // https://docs.oracle.com/javase/8/docs/technotes/guides/intl/enhancements.8.html#cldr
     javaOptions in Test ++= Seq("-Duser.language=en", "-Duser.country=", "-Djava.locale.providers=CLDR", "-Dfile.encoding=UTF8"),
-    name := "scala-java-locales testSuite on JVM",
-    libraryDependencies ++= Seq(
-      "com.novocode" % "junit-interface" % "0.11" % "test",
-      "io.github.cquiroz" %% "macroutils" % "0.0.1" % "provided"
-    )
+    name := "scala-java-locales testSuite on JVM"
   ).
+  // nativeConfigure(_.dependsOn(coreNative, macroUtils)).
+  jsConfigure(_.dependsOn(coreJS, macroUtils)).
   jvmConfigure(_.dependsOn(coreJVM, macroUtils))
 
 lazy val macroUtils = project.in(file("macroUtils")).

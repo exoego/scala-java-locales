@@ -6,14 +6,13 @@ import java.util.Locale
 import locales.LocaleRegistry
 import locales.cldr.LDML
 import locales.cldr.data._
-import org.junit.Assert._
-import org.junit.{Before, Ignore, Test}
+import utest._
 import testsuite.utils.{LocaleTestSetup, Platform}
 
-class DateFormatTest extends LocaleTestSetup {
+object DateFormatTest extends TestSuite with LocaleTestSetup {
   // Clean up the locale database, there are different implementations for
   // the JVM and JS
-  @Before def cleanup: Unit = {
+  override def utestBeforeEach(path: Seq[String]): Unit = {
     super.cleanDatabase
     Locale.setDefault(Locale.US)
   }
@@ -25,161 +24,162 @@ class DateFormatTest extends LocaleTestSetup {
                       dateFormats: Map[Int, String],
                       timeFormats: Map[Int, String])
 
-  @Test def test_constants(): Unit = {
-    assertEquals(0, DateFormat.ERA_FIELD)
-    assertEquals(1, DateFormat.YEAR_FIELD)
-    assertEquals(2, DateFormat.MONTH_FIELD)
-    assertEquals(3, DateFormat.DATE_FIELD)
-    assertEquals(4, DateFormat.HOUR_OF_DAY1_FIELD)
-    assertEquals(5, DateFormat.HOUR_OF_DAY0_FIELD)
-    assertEquals(6, DateFormat.MINUTE_FIELD)
-    assertEquals(7, DateFormat.SECOND_FIELD)
-    assertEquals(8, DateFormat.MILLISECOND_FIELD)
-    assertEquals(9, DateFormat.DAY_OF_WEEK_FIELD)
-    assertEquals(10, DateFormat.DAY_OF_YEAR_FIELD)
-    assertEquals(11, DateFormat.DAY_OF_WEEK_IN_MONTH_FIELD)
-    assertEquals(12, DateFormat.WEEK_OF_YEAR_FIELD)
-    assertEquals(13, DateFormat.WEEK_OF_MONTH_FIELD)
-    assertEquals(14, DateFormat.AM_PM_FIELD)
-    assertEquals(15, DateFormat.HOUR1_FIELD)
-    assertEquals(16, DateFormat.HOUR0_FIELD)
-    assertEquals(17, DateFormat.TIMEZONE_FIELD)
+  val tests = Tests {
+    'test_constants - {
+      assertEquals(0, DateFormat.ERA_FIELD)
+      assertEquals(1, DateFormat.YEAR_FIELD)
+      assertEquals(2, DateFormat.MONTH_FIELD)
+      assertEquals(3, DateFormat.DATE_FIELD)
+      assertEquals(4, DateFormat.HOUR_OF_DAY1_FIELD)
+      assertEquals(5, DateFormat.HOUR_OF_DAY0_FIELD)
+      assertEquals(6, DateFormat.MINUTE_FIELD)
+      assertEquals(7, DateFormat.SECOND_FIELD)
+      assertEquals(8, DateFormat.MILLISECOND_FIELD)
+      assertEquals(9, DateFormat.DAY_OF_WEEK_FIELD)
+      assertEquals(10, DateFormat.DAY_OF_YEAR_FIELD)
+      assertEquals(11, DateFormat.DAY_OF_WEEK_IN_MONTH_FIELD)
+      assertEquals(12, DateFormat.WEEK_OF_YEAR_FIELD)
+      assertEquals(13, DateFormat.WEEK_OF_MONTH_FIELD)
+      assertEquals(14, DateFormat.AM_PM_FIELD)
+      assertEquals(15, DateFormat.HOUR1_FIELD)
+      assertEquals(16, DateFormat.HOUR0_FIELD)
+      assertEquals(17, DateFormat.TIMEZONE_FIELD)
 
-    assertEquals(0, DateFormat.FULL)
-    assertEquals(1, DateFormat.LONG)
-    assertEquals(2, DateFormat.MEDIUM)
-    assertEquals(3, DateFormat.SHORT)
-    assertEquals(2, DateFormat.DEFAULT)
-  }
+      assertEquals(0, DateFormat.FULL)
+      assertEquals(1, DateFormat.LONG)
+      assertEquals(2, DateFormat.MEDIUM)
+      assertEquals(3, DateFormat.SHORT)
+      assertEquals(2, DateFormat.DEFAULT)
+    }
 
-  @Test def test_available_locales(): Unit = {
-    assertTrue(DateFormat.getAvailableLocales.contains(Locale.ENGLISH))
-  }
+    'test_available_locales - {
+      assertTrue(DateFormat.getAvailableLocales.contains(Locale.ENGLISH))
+    }
 
-  @Test def test_default_date_format(): Unit = {
-    assertEquals("EEEE, MMMM d, y",
-                 DateFormat
-                   .getDateInstance(DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMMM d, y",
-                 DateFormat
-                   .getDateInstance(DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMM d, y",
-                 DateFormat
-                   .getDateInstance(DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("M/d/yy",
-                 DateFormat
-                   .getDateInstance(DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
+    'test_default_date_format - {
+      assertEquals("EEEE, MMMM d, y",
+                   DateFormat
+                     .getDateInstance(DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMMM d, y",
+                   DateFormat
+                     .getDateInstance(DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMM d, y",
+                   DateFormat
+                     .getDateInstance(DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("M/d/yy",
+                   DateFormat
+                     .getDateInstance(DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
 
-    assertEquals("h:mm:ss a zzzz",
-                 DateFormat
-                   .getTimeInstance(DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("h:mm:ss a z",
-                 DateFormat
-                   .getTimeInstance(DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("h:mm:ss a",
-                 DateFormat
-                   .getTimeInstance(DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("h:mm a",
-                 DateFormat
-                   .getTimeInstance(DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
+      assertEquals("h:mm:ss a zzzz",
+                   DateFormat
+                     .getTimeInstance(DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("h:mm:ss a z",
+                   DateFormat
+                     .getTimeInstance(DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("h:mm:ss a",
+                   DateFormat
+                     .getTimeInstance(DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("h:mm a",
+                   DateFormat
+                     .getTimeInstance(DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
 
-    assertEquals("EEEE, MMMM d, y h:mm:ss a zzzz",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.FULL, DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("EEEE, MMMM d, y h:mm:ss a z",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.FULL, DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("EEEE, MMMM d, y h:mm:ss a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("EEEE, MMMM d, y h:mm a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMMM d, y h:mm:ss a zzzz",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.LONG, DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMMM d, y h:mm:ss a z",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMMM d, y h:mm:ss a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMMM d, y h:mm a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMM d, y h:mm:ss a zzzz",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMM d, y h:mm:ss a z",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMM d, y h:mm:ss a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("MMM d, y h:mm a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("M/d/yy h:mm:ss a zzzz",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.SHORT, DateFormat.FULL)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("M/d/yy h:mm:ss a z",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("M/d/yy h:mm:ss a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-    assertEquals("M/d/yy h:mm a",
-                 DateFormat
-                   .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                   .asInstanceOf[SimpleDateFormat]
-                   .toPattern())
-  }
+      assertEquals("EEEE, MMMM d, y h:mm:ss a zzzz",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.FULL, DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("EEEE, MMMM d, y h:mm:ss a z",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.FULL, DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("EEEE, MMMM d, y h:mm:ss a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("EEEE, MMMM d, y h:mm a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMMM d, y h:mm:ss a zzzz",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.LONG, DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMMM d, y h:mm:ss a z",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMMM d, y h:mm:ss a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMMM d, y h:mm a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMM d, y h:mm:ss a zzzz",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMM d, y h:mm:ss a z",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMM d, y h:mm:ss a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("MMM d, y h:mm a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("M/d/yy h:mm:ss a zzzz",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.SHORT, DateFormat.FULL)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("M/d/yy h:mm:ss a z",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("M/d/yy h:mm:ss a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+      assertEquals("M/d/yy h:mm a",
+                   DateFormat
+                     .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                     .asInstanceOf[SimpleDateFormat]
+                     .toPattern())
+    }
 
   val stdLocales = List(
     TestCase(
@@ -1201,46 +1201,8 @@ class DateFormatTest extends LocaleTestSetup {
     )
   )
 
-  @Test def test_standard_locales(): Unit = {
-    stdLocales.foreach { tc =>
-      for {
-        df <- tc.dateFormats
-      } yield {
-        assertEquals(df._2,
-                     DateFormat
-                       .getDateInstance(df._1, tc.l)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
-
-      for {
-        tf <- tc.timeFormats
-      } yield {
-        assertEquals(tf._2,
-                     DateFormat
-                       .getTimeInstance(tf._1, tc.l)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
-
-      for {
-        df <- tc.dateFormats
-        tf <- tc.timeFormats
-      } yield {
-        assertEquals(s"${df._2} ${tf._2}",
-                     DateFormat
-                       .getDateTimeInstance(df._1, tf._1, tc.l)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
-    }
-  }
-
-  @Test def test_standard_locales_diff(): Unit = {
-    stdLocalesDiff
-      .filter(tc =>
-        (Platform.executingInJVM && tc.cldr21) || (!Platform.executingInJVM && !tc.cldr21))
-      .foreach { tc =>
+    'test_standard_locales - {
+      stdLocales.foreach { tc =>
         for {
           df <- tc.dateFormats
         } yield {
@@ -1272,53 +1234,48 @@ class DateFormatTest extends LocaleTestSetup {
                          .toPattern())
         }
       }
-  }
-
-  @Test def test_extra_locales(): Unit = {
-    localesByTag.foreach { tc =>
-      if (!Platform.executingInJVM) {
-        LocaleRegistry.installLocale(tc.ldml)
-      }
-      val locale = Locale.forLanguageTag(tc.tag)
-
-      for {
-        df <- tc.dateFormats
-      } yield {
-        assertEquals(df._2,
-                     DateFormat
-                       .getDateInstance(df._1, locale)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
-
-      for {
-        tf <- tc.timeFormats
-      } yield {
-        assertEquals(tf._2,
-                     DateFormat
-                       .getTimeInstance(tf._1, locale)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
-
-      for {
-        df <- tc.dateFormats
-        tf <- tc.timeFormats
-      } yield {
-        assertEquals(s"${df._2} ${tf._2}",
-                     DateFormat
-                       .getDateTimeInstance(df._1, tf._1, locale)
-                       .asInstanceOf[SimpleDateFormat]
-                       .toPattern())
-      }
     }
-  }
 
-  @Test def test_extra_locales_diff(): Unit = {
-    localesByTagDiff
-      .filter(tc =>
-        (Platform.executingInJVM && tc.cldr21) || (!Platform.executingInJVM && !tc.cldr21))
-      .foreach { tc =>
+    'test_standard_locales_diff - {
+      stdLocalesDiff
+        .filter(tc =>
+          (Platform.executingInJVM && tc.cldr21) || (!Platform.executingInJVM && !tc.cldr21))
+        .foreach { tc =>
+          for {
+            df <- tc.dateFormats
+          } yield {
+            assertEquals(df._2,
+                         DateFormat
+                           .getDateInstance(df._1, tc.l)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+
+          for {
+            tf <- tc.timeFormats
+          } yield {
+            assertEquals(tf._2,
+                         DateFormat
+                           .getTimeInstance(tf._1, tc.l)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+
+          for {
+            df <- tc.dateFormats
+            tf <- tc.timeFormats
+          } yield {
+            assertEquals(s"${df._2} ${tf._2}",
+                         DateFormat
+                           .getDateTimeInstance(df._1, tf._1, tc.l)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+        }
+    }
+
+    'test_extra_locales - {
+      localesByTag.foreach { tc =>
         if (!Platform.executingInJVM) {
           LocaleRegistry.installLocale(tc.ldml)
         }
@@ -1348,55 +1305,99 @@ class DateFormatTest extends LocaleTestSetup {
           df <- tc.dateFormats
           tf <- tc.timeFormats
         } yield {
-          if (!tc.cldr21) {
-            assertEquals(s"${df._2} ${tf._2}",
-                         DateFormat
-                           .getDateTimeInstance(df._1, tf._1, locale)
-                           .asInstanceOf[SimpleDateFormat]
-                           .toPattern())
-          }
+          assertEquals(s"${df._2} ${tf._2}",
+                       DateFormat
+                         .getDateTimeInstance(df._1, tf._1, locale)
+                         .asInstanceOf[SimpleDateFormat]
+                         .toPattern())
         }
       }
-  }
+    }
 
-  @Test def test_bad_tag_matches_root_dfs(): Unit = {
-    val l = Locale.forLanguageTag("no_NO")
-    stdLocalesDiff.foreach {
-      case tc @ TestCase(_, _, lo, cldr21, df, tf)
-          if lo == Locale.ROOT && ((Platform.executingInJVM && cldr21) || (!Platform.executingInJVM && !cldr21)) =>
-        for {
-          df <- tc.dateFormats
-        } yield {
-          assertEquals(df._2,
-                       DateFormat
-                         .getDateInstance(df._1, l)
-                         .asInstanceOf[SimpleDateFormat]
-                         .toPattern())
-        }
+    'test_extra_locales_diff - {
+      localesByTagDiff
+        .filter(tc =>
+          (Platform.executingInJVM && tc.cldr21) || (!Platform.executingInJVM && !tc.cldr21))
+        .foreach { tc =>
+          if (!Platform.executingInJVM) {
+            LocaleRegistry.installLocale(tc.ldml)
+          }
+          val locale = Locale.forLanguageTag(tc.tag)
 
-        for {
-          tf <- tc.timeFormats
-        } yield {
-          assertEquals(tf._2,
-                       DateFormat
-                         .getTimeInstance(tf._1, l)
-                         .asInstanceOf[SimpleDateFormat]
-                         .toPattern())
-        }
-
-        for {
-          df <- tc.dateFormats
-          tf <- tc.timeFormats
-        } yield {
-          if (!tc.cldr21) {
-            assertEquals(s"${df._2} ${tf._2}",
+          for {
+            df <- tc.dateFormats
+          } yield {
+            assertEquals(df._2,
                          DateFormat
-                           .getDateTimeInstance(df._1, tf._1, l)
+                           .getDateInstance(df._1, locale)
                            .asInstanceOf[SimpleDateFormat]
                            .toPattern())
           }
+
+          for {
+            tf <- tc.timeFormats
+          } yield {
+            assertEquals(tf._2,
+                         DateFormat
+                           .getTimeInstance(tf._1, locale)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+
+          for {
+            df <- tc.dateFormats
+            tf <- tc.timeFormats
+          } yield {
+            if (!tc.cldr21) {
+              assertEquals(s"${df._2} ${tf._2}",
+                           DateFormat
+                             .getDateTimeInstance(df._1, tf._1, locale)
+                             .asInstanceOf[SimpleDateFormat]
+                             .toPattern())
+            }
+          }
         }
-      case _ =>
+    }
+
+    'test_bad_tag_matches_root_dfs - {
+      val l = Locale.forLanguageTag("no_NO")
+      stdLocalesDiff.foreach {
+        case tc @ TestCase(_, _, lo, cldr21, df, tf)
+            if lo == Locale.ROOT && ((Platform.executingInJVM && cldr21) || (!Platform.executingInJVM && !cldr21)) =>
+          for {
+            df <- tc.dateFormats
+          } yield {
+            assertEquals(df._2,
+                         DateFormat
+                           .getDateInstance(df._1, l)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+
+          for {
+            tf <- tc.timeFormats
+          } yield {
+            assertEquals(tf._2,
+                         DateFormat
+                           .getTimeInstance(tf._1, l)
+                           .asInstanceOf[SimpleDateFormat]
+                           .toPattern())
+          }
+
+          for {
+            df <- tc.dateFormats
+            tf <- tc.timeFormats
+          } yield {
+            if (!tc.cldr21) {
+              assertEquals(s"${df._2} ${tf._2}",
+                           DateFormat
+                             .getDateTimeInstance(df._1, tf._1, l)
+                             .asInstanceOf[SimpleDateFormat]
+                             .toPattern())
+            }
+          }
+        case _ =>
+      }
     }
   }
 }

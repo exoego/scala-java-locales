@@ -1,12 +1,13 @@
 package testsuite.javalib.text
 
 import java.text.CharacterIterator
+import testsuite.utils.LocaleTestSetup
+import utest._
 
-import org.junit.Test
-import org.junit.Assert._
-
-class CharacterIteratorTest {
-  @Test def test_done(): Unit = {
-    assertEquals('\uFFFF', CharacterIterator.DONE)
+object CharacterIteratorTest extends TestSuite with LocaleTestSetup {
+  val tests = Tests {
+    'test_done - {
+      assertEquals('\uFFFF', CharacterIterator.DONE)
+    }
   }
 }

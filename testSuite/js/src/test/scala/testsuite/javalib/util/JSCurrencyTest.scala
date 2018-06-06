@@ -2,22 +2,23 @@ package testsuite.javalib.util
 
 import java.util.Locale
 import java.util.Currency
-import org.junit.{Before, Test}
-import org.junit.Assert._
+import utest._
 import testsuite.utils.LocaleTestSetup
 import testsuite.utils.AssertThrows.expectThrows
 
-class JSCurrencyTest extends LocaleTestSetup with CurrencyTest {
+class JSCurrencyTest extends TestSuite with LocaleTestSetup with CurrencyTest {
 
   // Clean up the locale database, there are different implementations for
   // the JVM and JS
-  @Before def cleanup: Unit = super.cleanDatabase
+  override def utestBeforeEach(path: Seq[String]): Unit = super.cleanDatabase
 
-  @Test def test_available_currencies(): Unit = {
-    assertTrue(Currency.getAvailableCurrencies().size() > 0)
-  }
+  val tests = Tests {
+    'test_available_currencies - {
+      assertTrue(Currency.getAvailableCurrencies().size() > 0)
+    }
 
-  @Test def test_standard_locales(): Unit = {
-    test_standard_locales(_.jsResults)
+    'test_standard_locales - {
+      test_standard_locales(_.jsResults)
+    }
   }
 }
