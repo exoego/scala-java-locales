@@ -1,5 +1,4 @@
-import sbtcrossproject.{crossProject, CrossType}
-import sbt.Keys._
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import LDMLTasks._
 
 val cldrVersion = settingKey[String]("The version of CLDR used.")
@@ -10,8 +9,8 @@ val commonSettings: Seq[Setting[_]] = Seq(
   cldrVersion := "31",
   version := s"0.5.6-cldr${cldrVersion.value}",
   organization := "io.github.cquiroz",
-  scalaVersion := "2.11.11",
-  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.3", "2.13.0-M2"),
+  scalaVersion := "2.11.12",
+  crossScalaVersions := Seq("2.10.6", "2.11.12", "2.12.7", "2.13.0-M2"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
   scalacOptions := {
     CrossVersion.partialVersion(scalaVersion.value) match {
